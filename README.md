@@ -12,19 +12,21 @@ The core philosophy of Aetherquill is the **"Web of Echoes"**—the idea that ev
 
 ### ✨ Features & Capabilities
 
+*   **🛡️ Multi-Project Sanctum:** Aetherquill is your personal library. Create and manage multiple, distinct projects or "chronicles," each with its own isolated collection of lore. A simple, name-based login system keeps your work private and organized.
 *   **📜 Dynamic, Era-Based Timeline:** Chronicle the history of your world with a fully interactive timeline. Create custom Eras with defined date ranges, and watch as your events automatically sort themselves into the correct historical period.
 *   **🧝 Deep Character Creation:** Forge the souls of your story with a powerful character creator. Define core traits and add your own **custom, reorderable fields** to track anything you can imagine, from "Eye Color" to "Greatest Fear."
 *   **🌍 World-Building Atlas:** Create and manage the realms, cities, and regions of your saga.
 *   **✍️ The Heart's Library:** A dedicated writing room featuring a beautiful **Markdown editor with a live side-by-side preview**. Write your lore, scenes, or notes and see them beautifully formatted as you type.
-*   **🕸️ The Web of Echoes:** The true magic of Aetherquill. Every entity can be linked to any other. A **Character** can inhabit a **World** and be mentioned in multiple **Writings**. A **Timeline Event** can list the **Characters** who participated. A **Writing** can reference the **Events** it describes.
-*   **🧠 The Eternal Scroll:** All your work—every character, world, event, and manuscript—is automatically saved to your browser's local storage. Your scriptorium will be exactly as you left it every time you return.
+*   **🕸️ The Web of Echoes:** The true magic of Aetherquill. Every entity can be linked to any other within a project. A **Character** can inhabit a **World** and be mentioned in multiple **Writings**. A **Timeline Event** can list the **Characters** who participated. A **Writing** can reference the **Events** it describes.
+*   **🧠 The Eternal Scroll:** All your work—every user, every project, every character, world, event, and manuscript—is automatically saved to your browser's `localStorage`. Your scriptorium will be exactly as you left it every time you return.
 
 ### 🛠️ The Craftsman's Tools (Tech Stack)
 
 *   **Frontend:** React, TypeScript, React Router
 *   **Build Tool:** Vite
-*   **State Management:** Zustand (with `persist` middleware for local storage)
+*   **State Management:** Zustand (A single, unified store with `subscribe` for persistence)
 *   **Styling:** TailwindCSS (with a custom vintage theme and the Typography plugin)
+*   **Searching:** Fuse.js (for lightweight fuzzy searching)
 
 ### 📜 Getting Started: Lighting the First Candle
 
@@ -51,31 +53,31 @@ To summon Aetherquill in your own local workshop, follow these simple incantatio
     ```
 
 5.  **Open the Portal:**
-    Open your web browser and navigate to the local address provided by Vite (usually `http://localhost:5173`). The scriptorium awaits.
+    Open your web browser and navigate to the local address provided by Vite (usually `http://localhost:5173`). The scriptorium awaits. The first time you arrive, simply enter a name to create your scribe profile.
 
 ### 🗺️ Navigating the Scriptorium (Project Structure)
 
 The project is organized to be clean and scalable:
 
-aetherquill/\
-├── public/              # Static assets (fonts, background textures)\
-└── src/ \
-├── components/      # Reusable components (Layout, Panels, UI elements)\
-├── data/            # Initial static data and type definitions\
-├── pages/           # Top-level components for each main route\
-├── stores/          # Zustand stores for global state management\
-├── types/           # Core TypeScript type definitions (Character, World, etc.)\
-└── App.tsx          # Main application router
-
+```
+aetherquill/
+├── public/              # Static assets (fonts, background textures)
+└── src/
+    ├── components/      # Reusable components (Layout, Panels, UI elements)
+    ├── dataModels/      # Core data blueprints (UserData, ProjectData)
+    ├── hooks/           # Reusable React hooks (e.g., useDebounce)
+    ├── pages/           # Top-level components for each main route
+    ├── stores/          # The single, unified Zustand store (useAppStore)
+    ├── types/           # Entity-specific TypeScript interfaces (Character, World, etc.)
+    └── utils/           # Helper functions (storage, search, migration)
+```
 
 ### 🔮 The Path Forward (Future Vision)
 
-The foundation is strong, but the work of a master craftsman is never truly done. The next enchantments to be woven include:
+The foundation is strong, but the work of a master craftsman is never truly done. The next enchantments to be woven are focused on polishing the scribe's experience:
 
-*   **The Oracle's Mirror:** A global search bar to find any entity from anywhere.
-*   **Drag-and-Drop Magic:** Allow reordering of characters, eras, and other entities with intuitive drag-and-drop interfaces.
-*   **Dedicated Detail Pages:** Create beautiful, focused pages for viewing a single character or world in all its glory.
-*   **Dark Mode:** A "Midnight Parchment" theme for scribes who work best by moonlight.
+*   **🗂️ Dedicated Detail Pages:** Create beautiful, focused, read-only pages for viewing a single Character or World in all its glory, providing an immersive way to review your lore without the distraction of edit fields.
+*   **🎨 Dark Mode:** A "Midnight Parchment" theme for scribes who work best by moonlight, allowing you to switch between a light and dark version of the vintage aesthetic.
 
 ---
 

@@ -12,6 +12,8 @@ import CharacterPage from './pages/CharacterPage';
 import WritingRoomPage from './pages/WritingRoomPage';
 import WorldsPage from './pages/WorldsPage';
 import WritingViewerPage from './pages/WritingViewerPage';
+import CharacterViewerPage from './pages/CharacterViewerPage';
+import WorldViewerPage from './pages/WorldViewerPage';
 
 // Component Imports
 import Layout from './components/Layout';
@@ -79,10 +81,15 @@ function App() {
                     {/* All pages that require a project are nested inside this special protection route. */}
                     <Route path="project" element={<ProjectScopeRoute><ProjectPage /></ProjectScopeRoute>} />
                     <Route path="timeline" element={<ProjectScopeRoute><TimelinePage /></ProjectScopeRoute>} />
+                    // Route for the Character view
                     <Route path="characters" element={<ProjectScopeRoute><CharacterPage /></ProjectScopeRoute>} />
+                    <Route path="characters/:characterId" element={<CharacterViewerPage />} />
+                    // Route for Writing room
                     <Route path="writing-room" element={<ProjectScopeRoute><WritingRoomPage /></ProjectScopeRoute>} />
-                    <Route path="worlds" element={<ProjectScopeRoute><WorldsPage /></ProjectScopeRoute>} />
                     <Route path="writing/:writingId" element={<ProjectScopeRoute><WritingViewerPage /></ProjectScopeRoute>} />
+                    // Route for Worlds view
+                    <Route path="worlds" element={<ProjectScopeRoute><WorldsPage /></ProjectScopeRoute>} />
+                    <Route path="worlds/:worldId" element={<WorldViewerPage />} />
                 </Route>
 
                 {/* A catch-all for any unknown URL, redirecting to the user's dashboard. */}

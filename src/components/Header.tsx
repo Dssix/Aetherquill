@@ -4,12 +4,14 @@ import { useAppStore } from '../stores/useAppStore';
 import Button from './ui/Button';
 import { performSearch, type SearchResult } from '../utils/search';
 import { useDebounce } from '../hooks/useDebounce'
+import { useBreadcrumbs } from '../hooks/useBreadcrumbs';
 
 // This component is now self-contained and requires no props.
 const Header: React.FC = () => {
     // It summons the data it needs to be intelligent from the global store.
     const { currentUser, currentProjectId, userData, logout } = useAppStore();
     const navigate = useNavigate();
+    const breadcrumbs = useBreadcrumbs();
 
     // To Make Searching Possible
     const [searchQuery, setSearchQuery] = useState('');
@@ -117,6 +119,29 @@ const Header: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* This is the Breadcrumb Trail. It only appears if a project is active, and we are not on the main project page. */}
+            {currentProjectId && breadcrumbs.length > 1 && (
+                <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-2 text-xs text-ink-brown/70 border-b border-ink-brown/10">
+                    <nav>
+                        <ol className="flex items-center gap-2 flex-wrap">
+                            {breadcrumbs.map((crumb, index) => (
+                                <li key={crumb.path} className="flex items-center gap-2">
+                                    {index < breadcrumbs.length - 1 ? (
+                                        <Link to={crumb.path} className="hover:text-gold-leaf transition-colors">
+                                            {crumb.label}
+                                        </Link>
+                                    ) : (
+                                        <span className="font-semibold text-ink-brown">{crumb.label}</span>
+                                    )}
+                                    {index < breadcrumbs.length - 1 && <span>/</span>}
+                                </li>
+                            ))}
+                        </ol>
+                    </nav>
+                </div>
+            )}
+
             {/* Search Result Panel */}
             {isSearchFocused && searchQuery && (
                 <>

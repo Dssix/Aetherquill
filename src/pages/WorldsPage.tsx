@@ -4,6 +4,8 @@ import { type World } from '../types/world';
 import WorldForm from '../components/WorldForm';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import { Link } from 'react-router-dom';
+
 
 const WorldsPage: React.FC = () => {
     const { userData, currentProjectId, addWorld, updateWorld, deleteWorld } = useAppStore();
@@ -69,27 +71,29 @@ const WorldsPage: React.FC = () => {
                     const linkedEvents = world.linkedEventIds?.map(id => events.find(e => e.id === id)?.title).filter(Boolean);
 
                     return (
-                        <Card key={world.id} className="animate-fade-in-up flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xl font-bold text-ink-brown mb-2">{world.name}</h3>
-                                <p className="text-sm text-gold-leaf font-semibold">{world.theme}</p>
-                                <p className="text-sm text-ink-brown/70 mb-4">{world.setting}</p>
-                                <p className="text-base text-ink-brown/90 leading-relaxed line-clamp-3">{world.description}</p>
-                            </div>
-
-                            {(linkedChars?.length || linkedWritings?.length || linkedEvents?.length) && (
-                                <div className="mt-4 pt-4 border-t border-ink-brown/10 text-xs text-ink-brown/70 space-y-1">
-                                    {linkedChars && linkedChars.length > 0 && <p><strong>Inhabitants:</strong> {linkedChars.slice(0, 2).join(', ')}{linkedChars.length > 2 ? '...' : ''}</p>}
-                                    {linkedWritings && linkedWritings.length > 0 && <p><strong>Lore:</strong> {linkedWritings.slice(0, 2).join(', ')}{linkedWritings.length > 2 ? '...' : ''}</p>}
-                                    {linkedEvents && linkedEvents.length > 0 && <p><strong>History:</strong> {linkedEvents.slice(0, 2).join(', ')}{linkedEvents.length > 2 ? '...' : ''}</p>}
+                        <Link to={`/worlds/${world.id}`} key={world.id}>
+                            <Card key={world.id} className="opacity-0 animate-fade-in-up flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-xl font-bold text-ink-brown mb-2">{world.name}</h3>
+                                    <p className="text-sm text-gold-leaf font-semibold">{world.theme}</p>
+                                    <p className="text-sm text-ink-brown/70 mb-4">{world.setting}</p>
+                                    <p className="text-base text-ink-brown/90 leading-relaxed line-clamp-3">{world.description}</p>
                                 </div>
-                            )}
 
-                            <div className="text-right mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
-                                <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={() => openPanelForEdit(world)}>Edit</Button>
-                                <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={() => handleDelete(world)}>Delete</Button>
-                            </div>
-                        </Card>
+                                {(linkedChars?.length || linkedWritings?.length || linkedEvents?.length) && (
+                                    <div className="mt-4 pt-4 border-t border-ink-brown/10 text-xs text-ink-brown/70 space-y-1">
+                                        {linkedChars && linkedChars.length > 0 && <p><strong>Inhabitants:</strong> {linkedChars.slice(0, 2).join(', ')}{linkedChars.length > 2 ? '...' : ''}</p>}
+                                        {linkedWritings && linkedWritings.length > 0 && <p><strong>Lore:</strong> {linkedWritings.slice(0, 2).join(', ')}{linkedWritings.length > 2 ? '...' : ''}</p>}
+                                        {linkedEvents && linkedEvents.length > 0 && <p><strong>History:</strong> {linkedEvents.slice(0, 2).join(', ')}{linkedEvents.length > 2 ? '...' : ''}</p>}
+                                    </div>
+                                )}
+
+                                <div className="text-right mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
+                                    <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={() => openPanelForEdit(world)}>Edit</Button>
+                                    <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={() => handleDelete(world)}>Delete</Button>
+                                </div>
+                            </Card>
+                        </Link>
                     );
                 })}
             </div>

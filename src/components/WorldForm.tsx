@@ -72,7 +72,7 @@ const WorldForm: React.FC<WorldFormProps> = ({ isOpen, onClose, onSave, worldToE
                             <input name="name" value={formData.name} onChange={handleChange} placeholder="World Name..." className="w-full ..."/>
                             <input name="theme" value={formData.theme} onChange={handleChange} placeholder="Theme..." className="w-full ..."/>
                             <input name="setting" value={formData.setting} onChange={handleChange} placeholder="Setting..." className="w-full ..."/>
-                            <textarea name="description" value={formData.description} placeholder="Description..." rows={8} className="w-full ..."/>
+                            <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Description..." rows={8} className="w-full ..."/>
                         </div>
                         {/* Column 2: Entity Links */}
                         <div className="space-y-4">
