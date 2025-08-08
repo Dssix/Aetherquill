@@ -42,11 +42,11 @@ const Header: React.FC = () => {
                             <NavLink to="/characters" className={({ isActive }) => `transition-colors ${isActive ? 'text-gold-leaf font-bold' : 'text-ink-brown/70 hover:text-gold-leaf'}`}>
                                 Souls
                             </NavLink>
-                            <NavLink to="/worlds" className={({ isActive }) => `transition-colors ${isActive ? 'text-gold-leaf font-bold' : 'text-ink-brown/70 hover:text-gold-leaf'}`}>
-                                Realms
-                            </NavLink>
                             <NavLink to="/writing-room" className={({ isActive }) => `transition-colors ${isActive ? 'text-gold-leaf font-bold' : 'text-ink-brown/70 hover:text-gold-leaf'}`}>
                                 Lore
+                            </NavLink>
+                            <NavLink to="/worlds" className={({ isActive }) => `transition-colors ${isActive ? 'text-gold-leaf font-bold' : 'text-ink-brown/70 hover:text-gold-leaf'}`}>
+                                Realms
                             </NavLink>
                         </nav>
                     )}

@@ -1,31 +1,38 @@
-import React, { useState } from 'react';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWorldStore } from '../stores/useWorldStore';
+import React, { useState, useMemo } from 'react';
+import { useAppStore } from '../stores/useAppStore';
 import { type Character } from '../types/character';
 import AddCharacterPanel from '../components/panels/AddCharacterPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import TraitDisplay from '../components/ui/TraitDisplay';
-import {useWritingStore} from "../stores/useWritingStore.ts";
 
 const CharacterPage: React.FC = () => {
-    const { characters, addCharacter, updateCharacter, deleteCharacter } = useCharacterStore();
-    const { worlds } = useWorldStore();
-    const { writings } = useWritingStore();
+    // Import from the useAppStore
+    const { userData, currentProjectId, addCharacter, updateCharacter, deleteCharacter } = useAppStore();
+
 
     // This state controls the visibility of our creation panel.
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [characterToEdit, setCharacterToEdit] = useState<Character | null>(null);
+
+
+    // Loading the Project specific data
+    const projectData = useMemo(() => {
+        if (!userData || !currentProjectId) return null;
+        return userData.projects[currentProjectId];
+    }, [userData, currentProjectId]);
+    const characters = projectData?.characters || [];
+    const worlds = projectData?.worlds || [];
+    const writings = projectData?.writings || [];
+
 
     // --- Handler Function ---
     // This function is passed to the panel. It receives the form data,
     // adds a unique ID, and updates our character list.
     const handleSaveCharacter = (characterData: Omit<Character, 'id'>) => {
         if (characterToEdit) {
-            // If we were editing, call the update action.
             updateCharacter(characterToEdit.id, characterData);
         } else {
-            // Otherwise, call the add action.
             addCharacter(characterData);
         }
         setCharacterToEdit(null);
@@ -57,12 +64,18 @@ const CharacterPage: React.FC = () => {
         return writingIds.map(id => writings.find(w => w.id === id)?.title).filter(Boolean) as string[];
     };
 
+
+    // Safety Check in case user navigates here without project
+    if (!projectData) {
+        return <div className="p-8 text-center">Loading project data or invalid project selected...</div>;
+    }
+
     return (
         <div className="w-full max-w-5xl mx-auto p-4 sm:p-8">
             <div className="flex justify-between items-center mb-8 animate-fade-in-down">
                 <div>
                     <h1 className="text-4xl font-bold text-ink-brown">🧝 Living Souls</h1>
-                    <p className="text-ink-brown/70 italic mt-1">The heroes, villains, and folk of thy realm.</p>
+                    <p className="text-ink-brown/70 italic mt-1">From the chronicle: {projectData.name}</p>
                 </div>
                 <Button onClick={openPanelForAdd}>
                     + Add New Character
@@ -132,6 +145,8 @@ const CharacterPage: React.FC = () => {
                 onClose={() => setIsPanelOpen(false)}
                 onSave={handleSaveCharacter}
                 characterToEdit={characterToEdit}
+                worlds={worlds}
+                writings={writings}
             />
         </div>
     );

@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { useWorldStore } from '../stores/useWorldStore';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWritingStore } from '../stores/useWritingStore';
-import { useTimelineEventStore } from '../stores/useTimelineEventStore';
+import React, { useState, useMemo } from 'react';
+import { useAppStore } from '../stores/useAppStore';
 import { type World } from '../types/world';
 import WorldForm from '../components/WorldForm';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 
 const WorldsPage: React.FC = () => {
-    // Summon all our librarians
-    const { worlds, addWorld, updateWorld, deleteWorld } = useWorldStore();
-    const { characters } = useCharacterStore();
-    const { writings } = useWritingStore();
-    const { events } = useTimelineEventStore();
+    const { userData, currentProjectId, addWorld, updateWorld, deleteWorld } = useAppStore();
 
-    // UI state for the panel
+    const projectData = useMemo(() => {
+        if (!userData || !currentProjectId) return null;
+        return userData.projects[currentProjectId];
+    }, [userData, currentProjectId]);
+
+    const worlds = useMemo(() => projectData?.worlds || [], [projectData]);
+    const characters = useMemo(() => projectData?.characters || [], [projectData]);
+    const writings = useMemo(() => projectData?.writings || [], [projectData]);
+    const events = useMemo(() => projectData?.timeline || [], [projectData]);
+
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [worldToEdit, setWorldToEdit] = useState<World | null>(null);
 
-    // Handlers to connect the UI to the store's actions
     const handleSave = (data: Omit<World, 'id'>) => {
         if (worldToEdit) {
             updateWorld(worldToEdit.id, data);
@@ -44,12 +45,16 @@ const WorldsPage: React.FC = () => {
         setIsPanelOpen(true);
     };
 
+    if (!projectData) {
+        return <div className="p-8 text-center">Loading project data...</div>;
+    }
+
     return (
         <div className="w-full max-w-5xl mx-auto p-4 sm:p-8">
             <div className="flex justify-between items-center mb-8 animate-fade-in-down">
                 <div>
                     <h1 className="text-4xl font-bold text-ink-brown">🌍 Realms & Regions</h1>
-                    <p className="text-ink-brown/70 italic mt-1">The stages upon which thy sagas unfold.</p>
+                    <p className="text-ink-brown/70 italic mt-1">From the chronicle: {projectData.name}</p>
                 </div>
                 <Button onClick={openPanelForAdd}>
                     + Forge New World
@@ -72,7 +77,6 @@ const WorldsPage: React.FC = () => {
                                 <p className="text-base text-ink-brown/90 leading-relaxed line-clamp-3">{world.description}</p>
                             </div>
 
-                            {/* The new section for displaying links */}
                             {(linkedChars?.length || linkedWritings?.length || linkedEvents?.length) && (
                                 <div className="mt-4 pt-4 border-t border-ink-brown/10 text-xs text-ink-brown/70 space-y-1">
                                     {linkedChars && linkedChars.length > 0 && <p><strong>Inhabitants:</strong> {linkedChars.slice(0, 2).join(', ')}{linkedChars.length > 2 ? '...' : ''}</p>}
@@ -101,6 +105,9 @@ const WorldsPage: React.FC = () => {
                 onClose={() => setIsPanelOpen(false)}
                 onSave={handleSave}
                 worldToEdit={worldToEdit}
+                characters={characters}
+                writings={writings}
+                events={events}
             />
         </div>
     );

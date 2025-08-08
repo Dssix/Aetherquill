@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { type TimelineEvent } from '../data/timelineEvents';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWritingStore } from '../stores/useWritingStore';
+import { type Character } from '../types/character'; // For props
+import { type WritingEntry } from '../stores/useWritingStore';
 import Button from './ui/Button';
 import EntityLinker from './ui/EntityLinker';
 
@@ -10,12 +10,11 @@ interface EventFormProps {
     onClose: () => void;
     onSubmit: (data: Omit<TimelineEvent, 'id' | 'eraId'>) => void;
     initialData?: TimelineEvent | null;
+    characters: Character[];
+    writings: WritingEntry[];
 }
 
-export const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit, initialData }) => {
-    // Summon the data from our global libraries.
-    const { characters } = useCharacterStore();
-    const { writings } = useWritingStore();
+export const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit, initialData, characters, writings }) => {
 
     // State for the form's data.
     const [formData, setFormData] = useState({ title: '', date: '', tags: '', description: '' });

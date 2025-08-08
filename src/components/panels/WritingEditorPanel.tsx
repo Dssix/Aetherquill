@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { type WritingEntry } from '../../stores/useWritingStore';
 import Button from '../ui/Button';
-import { useCharacterStore } from '../../stores/useCharacterStore';
-import { useWorldStore } from '../../stores/useWorldStore';
-import { useTimelineEventStore } from '../../stores/useTimelineEventStore';
 import EntityLinker from '../ui/EntityLinker';
+import type {Character} from "../../types/character.ts";
+import type {World} from "../../types/world.ts";
+import type {TimelineEvent} from "../../data/timelineEvents.ts";
 
 interface WritingEditorPanelProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (data: Omit<WritingEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
     writingToEdit?: WritingEntry | null;
+    characters: Character[];
+    worlds: World[];
+    events: TimelineEvent[];
 }
 
-const WritingEditorPanel: React.FC<WritingEditorPanelProps> = ({ isOpen, onClose, onSave, writingToEdit }) => {
+const WritingEditorPanel: React.FC<WritingEditorPanelProps> = ({ isOpen, onClose, onSave, writingToEdit, characters, worlds, events }) => {
 
-    const { characters } = useCharacterStore();
-    const { worlds } = useWorldStore();
-    const { events } = useTimelineEventStore();
 
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');

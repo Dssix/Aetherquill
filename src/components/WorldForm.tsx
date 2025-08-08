@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { type World } from '../types/world';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWritingStore } from '../stores/useWritingStore';
-import { useTimelineEventStore } from '../stores/useTimelineEventStore';
+import { type Character } from '../types/character'; // For props
+import { type WritingEntry } from '../stores/useWritingStore'; // For props
+import { type TimelineEvent } from '../data/timelineEvents';
 import Button from './ui/Button';
 import EntityLinker from './ui/EntityLinker';
 
@@ -11,13 +11,12 @@ interface WorldFormProps {
     onClose: () => void;
     onSave: (data: Omit<World, 'id'>) => void;
     worldToEdit?: World | null;
+    characters: Character[];
+    writings: WritingEntry[];
+    events: TimelineEvent[];
 }
 
-const WorldForm: React.FC<WorldFormProps> = ({ isOpen, onClose, onSave, worldToEdit }) => {
-    // Summon data from all our libraries
-    const { characters } = useCharacterStore();
-    const { writings } = useWritingStore();
-    const { events } = useTimelineEventStore();
+const WorldForm: React.FC<WorldFormProps> = ({ isOpen, onClose, onSave, worldToEdit, characters, writings, events }) => {
 
     // State for all form fields
     const [formData, setFormData] = useState({ name: '', theme: '', setting: '', description: '' });

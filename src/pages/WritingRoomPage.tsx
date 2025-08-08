@@ -2,21 +2,32 @@ import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 
-import { useWritingStore, type WritingEntry } from '../stores/useWritingStore';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWorldStore } from '../stores/useWorldStore';
-import { useTimelineEventStore } from '../stores/useTimelineEventStore';
+import { type WritingEntry } from '../stores/useWritingStore';
 
 import WritingEditorPanel from '../components/panels/WritingEditorPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import {useAppStore} from "../stores/useAppStore.ts";
 
 const WritingRoomPage: React.FC = () => {
     // We summon our librarian, the Zustand store.
-    const { writings, addWriting, updateWriting, deleteWriting } = useWritingStore();
-    const { characters } = useCharacterStore();
-    const { worlds } = useWorldStore();
-    const { events } = useTimelineEventStore();
+    const {
+        userData,
+        currentProjectId,
+        addWriting,
+        updateWriting,
+        deleteWriting
+    } = useAppStore();
+
+    const projectData = useMemo(() => {
+        if (!userData || !currentProjectId) return null;
+        return userData.projects[currentProjectId];
+    }, [userData, currentProjectId]);
+
+    const writings = useMemo(() => projectData?.writings || [], [projectData]);
+    const characters = useMemo(() => projectData?.characters || [], [projectData]);
+    const worlds = useMemo(() => projectData?.worlds || [], [projectData]);
+    const events = useMemo(() => projectData?.timeline || [], [projectData]);
 
     // UI state for controlling the editor panel.
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -57,6 +68,10 @@ const WritingRoomPage: React.FC = () => {
             deleteWriting(id);
         }
     };
+
+    if (!projectData) {
+        return <div className="p-8 text-center">Loading project data...</div>;
+    }
 
     return (
 
@@ -140,6 +155,9 @@ const WritingRoomPage: React.FC = () => {
                 onClose={() => setIsPanelOpen(false)}
                 onSave={handleSave}
                 writingToEdit={writingToEdit}
+                characters={characters}
+                worlds={worlds}
+                events={events}
             />
         </div>
     );

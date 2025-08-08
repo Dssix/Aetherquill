@@ -1,12 +1,20 @@
 import React from 'react';
 import { type TimelineEvent } from '../data/timelineEvents';
-import { useCharacterStore } from '../stores/useCharacterStore';
-import { useWritingStore } from '../stores/useWritingStore';
+import { type Character } from '../types/character'; // For props
+import { type WritingEntry } from '../stores/useWritingStore';
 
-const TimelineNode: React.FC<TimelineNodeProps> = ({ event, isActive, onClick, onEdit, onDelete }) => {
-    // Summon the data from our global libraries for name lookups.
-    const { characters } = useCharacterStore();
-    const { writings } = useWritingStore();
+interface TimelineNodeProps {
+    event: TimelineEvent;
+    isActive: boolean;
+    onClick: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
+    // It now receives the data it needs for name lookups.
+    characters: Character[];
+    writings: WritingEntry[];
+}
+
+const TimelineNode: React.FC<TimelineNodeProps> = ({ event, isActive, onClick, onEdit, onDelete, characters, writings }) => {
 
     // Look up the names of the linked entities.
     const linkedChars = event.linkedCharacterIds?.map(id => characters.find(c => c.id === id)?.name).filter(Boolean);
@@ -59,13 +67,5 @@ const TimelineNode: React.FC<TimelineNodeProps> = ({ event, isActive, onClick, o
     );
 };
 
-// --- Make sure the props interface is also updated ---
-interface TimelineNodeProps {
-    event: TimelineEvent;
-    isActive: boolean;
-    onClick: () => void;
-    onEdit: () => void;
-    onDelete: () => void;
-}
 
 export default TimelineNode;

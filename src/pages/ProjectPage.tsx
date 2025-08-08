@@ -37,7 +37,7 @@ const ProjectPage: React.FC = () => {
                 </p>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 animate-fade-in-up">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 opacity-0 animate-fade-in-up">
                 <Link to="/timeline">
                     <NavigationCard
                         icon={<QuillIcon />}

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { type TimelineEvent } from '../data/timelineEvents';
-import { initialEras, type Era } from '../data/eraManager';
+import {type Era} from '../data/eraManager'; // We'll need to refactor Eras next
+import { useAppStore } from '../stores/useAppStore';
 import { EraForm } from '../components/EraForm';
 import { getUniqueTags } from '../utils/tagUtils';
 import TimelineNode from '../components/TimelineNode';
@@ -8,23 +9,33 @@ import TagFilter from '../components/TagFilter';
 import { EventForm } from '../components/EventForm';
 import EraDivider from '../components/EraDivider';
 import Button from '../components/ui/Button';
-import { useTimelineEventStore } from '../stores/useTimelineEventStore';
 
 const TimelinePage: React.FC = () => {
-    const { events, addEvent, updateEvent, deleteEvent } = useTimelineEventStore();
+    const {
+        userData,
+        currentProjectId,
+        addTimelineEvent,
+        updateTimelineEvent,
+        deleteTimelineEvent,
+        addEra,
+        updateEra,
+        // deleteEra // We will add a delete button for eras later
+    } = useAppStore();
 
-    const [eras, setEras] = useState<Era[]>(() => {
-        const saved = localStorage.getItem('aetherquill-eras');
-        return saved ? JSON.parse(saved) : initialEras;
-    });
 
-    useEffect(() => {
-        localStorage.setItem('aetherquill-eras', JSON.stringify(eras));
-    }, [eras]);
+    // Project Specific Data
+    const projectData = useMemo(() => {
+        if (!userData || !currentProjectId) return null;
+        return userData.projects[currentProjectId];
+    }, [userData, currentProjectId]);
+    const events = useMemo(() => projectData?.timeline || [], [projectData]);
+    const eras = useMemo(() => projectData?.eras || [], [projectData]);
+    const characters = useMemo(() => projectData?.characters || [], [projectData]);
+    const writings = useMemo(() => projectData?.writings || [], [projectData]);
 
     const [activeEventIdentifier, setActiveEventIdentifier] = useState<string | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
-    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isEventFormOpen, setIsEventFormOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<TimelineEvent | null>(null);
     const [isEraFormOpen, setIsEraFormOpen] = useState(false);
     const [editingEra, setEditingEra] = useState<Era | null>(null);
@@ -89,40 +100,39 @@ const TimelinePage: React.FC = () => {
 
     const handleAddEvent = (data: Omit<TimelineEvent, 'id' | 'eraId'>) => {
         const eraId = findEraIdForDate(data.date, eras);
-        addEvent({ ...data, eraId });
-        setIsFormOpen(false);
+        addTimelineEvent({ ...data, eraId }); // Call new store action
+        setIsEventFormOpen(false);
     };
 
     const handleUpdateEvent = (data: Omit<TimelineEvent, 'id' | 'eraId'>) => {
         if (!editingEvent) return;
         const eraId = findEraIdForDate(data.date, eras);
-        updateEvent(editingEvent.id, { ...data, eraId });
+        updateTimelineEvent(editingEvent.id, { ...data, eraId }); // Call new store action
         setEditingEvent(null);
-        setIsFormOpen(false);
+        setIsEventFormOpen(false);
     };
 
     const handleDeleteEvent = (id: string) => {
-        if (window.confirm("Are you sure you wish to erase this entry from the chronicle?")) {
-            deleteEvent(id);
+        if (window.confirm("Are you sure you wish to erase this entry?")) {
+            deleteTimelineEvent(id); // Call new store action
         }
     };
 
     // Era Handlers
     const handleAddEra = (data: Omit<Era, 'id'>) => {
-        const newEra: Era = { id: `era_${Date.now()}`, ...data };
-        setEras(prev => [...prev, newEra]);
+        addEra(data); // Call new store action
         setIsEraFormOpen(false);
     };
 
     const handleUpdateEra = (data: Omit<Era, 'id'>) => {
         if (!editingEra) return;
-        setEras(prev => prev.map(era => era.id === editingEra.id ? { ...era, ...data } : era));
+        updateEra(editingEra.id, data); // Call new store action
         setEditingEra(null);
         setIsEraFormOpen(false);
     };
 
-    const handleOpenEventFormForEdit = (event: TimelineEvent) => { setEditingEvent(event); setIsFormOpen(true); };
-    const handleOpenEventFormForAdd = () => { setEditingEvent(null); setIsFormOpen(true); };
+    const handleOpenEventFormForEdit = (event: TimelineEvent) => { setEditingEvent(event); setIsEventFormOpen(true); };
+    const handleOpenEventFormForAdd = () => { setEditingEvent(null); setIsEventFormOpen(true); };
     const handleOpenEraFormForEdit = (era: Era) => { setEditingEra(era); setIsEraFormOpen(true); };
     const handleOpenEraFormForAdd = () => { setEditingEra(null); setIsEraFormOpen(true); };
 
@@ -138,8 +148,15 @@ const TimelinePage: React.FC = () => {
     };
 
 
+    // Security Check
+    if (!projectData) {
+        return <div className="p-8 text-center">Loading project data...</div>;
+    }
+
     return (
         <div className="w-full max-w-3xl mx-auto p-4 sm:p-8">
+            <h1 className="text-4xl font-bold text-ink-brown text-center mb-2">Chronicle of Eras</h1>
+            <p className="text-ink-brown/70 italic text-center mb-8">For the chronicle: {projectData.name}</p>
             <div className="max-w-3xl mx-auto">
                 <div className="flex justify-center items-center gap-4 mb-8 opacity-0 animate-fade-in-up" style={{animationDelay: '300ms'}}>
                     <Button onClick={handleOpenEventFormForAdd}>
@@ -188,6 +205,8 @@ const TimelinePage: React.FC = () => {
                                                         onClick={() => handleNodeClick(event.id)}
                                                         onEdit={() => handleOpenEventFormForEdit(event)}
                                                         onDelete={() => handleDeleteEvent(event.id)}
+                                                        characters={characters}
+                                                        writings={writings}
                                                     />
                                                 ))}
                                             </div>
@@ -204,11 +223,14 @@ const TimelinePage: React.FC = () => {
                 </div>
             </div>
 
-            {isFormOpen && (
+            {isEventFormOpen && (
                 <EventForm
-                    onClose={() => setIsFormOpen(false)}
+                    onClose={() => setIsEventFormOpen(false)}
                     onSubmit={editingEvent ? handleUpdateEvent : handleAddEvent}
                     initialData={editingEvent}
+                    // The EventForm correctly needs characters and writings for linking.
+                    characters={characters}
+                    writings={writings}
                 />
             )}
             {isEraFormOpen && (
@@ -216,6 +238,7 @@ const TimelinePage: React.FC = () => {
                     onClose={() => setIsEraFormOpen(false)}
                     onSubmit={editingEra ? handleUpdateEra : handleAddEra}
                     initialData={editingEra}
+                    // The EraForm does NOT need characters or writings. We remove them.
                 />
             )}
         </div>

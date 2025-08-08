@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { type Character } from '../../types/character';
-import { useWorldStore } from '../../stores/useWorldStore';
-import { useWritingStore } from '../../stores/useWritingStore';
+import { type World } from '../../types/world';
+import { type WritingEntry } from '../../stores/useWritingStore';
 import Button from '../ui/Button';
 import Card from '../ui/Card';
 
@@ -21,6 +21,8 @@ interface AddCharacterPanelProps {
     onClose: () => void;
     onSave: (characterData: Omit<Character, 'id'>) => void;
     characterToEdit?: Character | null;
+    worlds: World[];
+    writings: WritingEntry[];
 }
 
 // A helper component for the fixed fields.
@@ -31,15 +33,13 @@ const FormField = ({ label, children }: { label: string, children: React.ReactNo
     </label>
 );
 
-const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, onSave, characterToEdit }) => {
-    const { worlds } = useWorldStore();
-    const { writings } = useWritingStore();
+const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, onSave, characterToEdit, worlds, writings }) => {
 
     // State for fixed, non-reorderable fields.
     const [name, setName] = useState('');
     const [species, setSpecies] = useState('');
-    const [linkedWorldId, setLinkedWorldId] = useState<string | null>(null); // Standardized name
-    const [linkedWritingIds, setLinkedWritingIds] = useState<string[]>([]); // New state for multi-select
+    const [linkedWorldId, setLinkedWorldId] = useState<string | null>(null);
+    const [linkedWritingIds, setLinkedWritingIds] = useState<string[]>([]);
     const [reorderableFields, setReorderableFields] = useState<ReorderableField[]>([]);
 
     // Helper function to get the default set of reorderable fields.

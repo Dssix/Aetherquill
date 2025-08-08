@@ -100,6 +100,7 @@ const DashboardPage: React.FC = () => {
             worlds: [],
             writings: [],
             timeline: [],
+            eras: [],
         };
 
         addProject(newProject);
@@ -122,7 +123,7 @@ const DashboardPage: React.FC = () => {
     };
 
     return (
-        <main className="min-h-screen w-full p-4 sm:p-8 bg-cover bg-center" style={{ backgroundImage: "url('/parchment-bg.png')" }}>
+        <main className="min-h-screen w-full p-4 sm:p-8 bg-cover bg-center " style={{ backgroundImage: "url('/parchment-bg.png')" }}>
             {/*<Header />*/}
             <div className="flex-grow flex flex-col items-center justify-center p-4 sm:p-8">
                 <div className="max-w-4xl mx-auto">
@@ -131,7 +132,7 @@ const DashboardPage: React.FC = () => {
                         <p className="text-lg text-ink-brown/80 italic mt-2">Choose a chronicle to continue thy work.</p>
                     </header>
 
-                    <div className="flex justify-center mb-8">
+                    <div className="flex justify-center opacity-0 animate-fade-in-down mb-8">
                         <Button onClick={() => setIsCreateModalOpen(true)}>
                             + New Project
                         </Button>
@@ -140,7 +141,7 @@ const DashboardPage: React.FC = () => {
                     {/* --- Step 3: Render the list of project cards --- */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {projects.map(project => (
-                            <Card key={project.projectId} className="animate-fade-in-up">
+                            <Card key={project.projectId} className="opacity-0 animate-fade-in-up">
                                 <div className="flex flex-col justify-between h-full">
                                     <div>
                                         <h3 className="text-2xl font-bold text-ink-brown">{project.name}</h3>

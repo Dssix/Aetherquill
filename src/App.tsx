@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
 import { loadUserData } from './utils/storage';
@@ -36,11 +36,12 @@ const ProjectScopeRoute = ({ children }: { children: React.ReactNode }) => {
 }
 
 function App() {
-    const { currentUser, login } = useAppStore();
 
-    // This effect handles auto-login on page refresh.
+    const login = useAppStore((state) => state.login);
+    const [isInitializing, setIsInitializing] = useState(true);
+
     useEffect(() => {
-        if (!currentUser) {
+        const checkUser = () => {
             const savedUsername = localStorage.getItem('aetherquill__current_user');
             if (savedUsername) {
                 const userData = loadUserData(savedUsername);
@@ -48,8 +49,14 @@ function App() {
                     login(savedUsername, userData);
                 }
             }
-        }
-    }, []);
+            setIsInitializing(false);
+        };
+        checkUser();
+    }, [login]);
+
+    if (isInitializing) {
+        return null; // Or a beautiful loading screen component
+    }
 
     return (
         <BrowserRouter>
