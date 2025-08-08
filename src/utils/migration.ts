@@ -30,6 +30,7 @@ export const runLegacyMigration = () => {
         worlds: legacyWorlds,
         writings: legacyWritings,
         timeline: legacyTimeline,
+        eras: [],
     };
 
     // --- Step 3: Assemble the ProjectData into our new UserData structure ---
