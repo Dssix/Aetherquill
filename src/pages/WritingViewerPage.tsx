@@ -1,23 +1,56 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useWritingStore } from '../stores/useWritingStore';
+import { useAppStore } from '../stores/useAppStore';
 import ReactMarkdown from 'react-markdown';
+import Card from "../components/ui/Card.tsx";
 
 const WritingViewerPage: React.FC = () => {
-    // This hook from React Router gets the ':writingId' from the URL.
     const { writingId } = useParams<{ writingId: string }>();
-    // We find the specific manuscript in our library.
-    const writing = useWritingStore(state => state.writings.find(w => w.id === writingId));
 
+    // --- Step 1: Safely fetch the TOP-LEVEL data from the store ---
+    const { userData, currentProjectId } = useAppStore();
+
+    // --- Step 2: Safely DERIVE the project data using useMemo ---
+    const projectData = useMemo(() => {
+        if (!userData || !currentProjectId) return null;
+        return userData.projects[currentProjectId];
+    }, [userData, currentProjectId]);
+
+    // --- Step 3: Safely DERIVE the specific manuscript and its related data ---
+    const writing = useMemo(() => projectData?.writings.find(w => w.id === writingId), [projectData, writingId]);
+    const characters = useMemo(() => projectData?.characters || [], [projectData]);
+    const worlds = useMemo(() => projectData?.worlds || [], [projectData]);
+    const events = useMemo(() => projectData?.timeline || [], [projectData]);
+
+    // --- The rest of the component logic can now proceed with confidence ---
+
+    const linkedWorld = useMemo(() =>
+            worlds.find(w => w.id === writing?.linkedWorldId)
+        , [worlds, writing]);
+
+    const linkedChars = useMemo(() =>
+            writing?.linkedCharacterIds?.map(id => characters.find(c => c.id === id)).filter(Boolean) as {id: string, name: string}[] || []
+        , [characters, writing]);
+
+    const linkedEvents = useMemo(() =>
+            writing?.linkedEventIds?.map(id => events.find(e => e.id === id)).filter(Boolean) as {id: string, title: string}[] || []
+        , [events, writing]);
+
+    // Now, our "early exit" check is safe and will correctly display the message.
     if (!writing) {
+        // We add a check for projectData to give a more helpful message
+        if (!projectData) {
+            return <div className="p-8 text-center">Loading chronicle...</div>;
+        }
         return (
-            <div className="text-center p-12">
-                <h2 className="text-2xl text-ink-brown">Manuscript not found.</h2>
+            <div className="text-center p-12 animate-fade-in">
+                <h2 className="text-2xl text-ink-brown">Manuscript not found in this chronicle.</h2>
                 <Link to="/writing-room" className="text-gold-leaf mt-4 inline-block">Return to the Library</Link>
             </div>
         );
     }
 
+    // The JSX for rendering the manuscript remains the same.
     return (
         <div className="w-full max-w-3xl mx-auto p-4 sm:p-8 animate-fade-in">
             <header className="mb-8 pb-4 border-b border-ink-brown/20">
@@ -33,10 +66,41 @@ const WritingViewerPage: React.FC = () => {
                         ))}
                     </div>
                 )}
+                {(linkedWorld || (linkedChars && linkedChars.length > 0) || (linkedEvents && linkedEvents.length > 0)) && (
+                    <div className="mt-4 text-xs text-ink-brown/70 space-y-1">
+                        {linkedWorld && (
+                            <p>
+                                🌍 In the realm of <Link to={`/worlds/${linkedWorld.id}`} className="text-gold-leaf hover:underline">{linkedWorld.name}</Link>
+                            </p>
+                        )}
+                        {linkedChars && linkedChars.length > 0 && (
+                            <p>
+                                🧝 Featuring: {linkedChars.map((char, index) => (
+                                <React.Fragment key={char.id}>
+                                    <Link to={`/characters/${char.id}`} className="text-gold-leaf hover:underline">{char.name}</Link>
+                                    {index < linkedChars.length - 1 ? ', ' : ''}
+                                </React.Fragment>
+                            ))}
+                            </p>
+                        )}
+                        {linkedEvents && linkedEvents.length > 0 && (
+                            <p>
+                                ⏳ Pertaining to: {linkedEvents.map((event, index) => (
+                                <React.Fragment key={event.id}>
+                                    <Link to={`/timeline#${event.id}`} className="text-gold-leaf hover:underline">{event.title}</Link>
+                                    {index < linkedEvents.length - 1 ? ', ' : ''}
+                                </React.Fragment>
+                            ))}
+                            </p>
+                        )}
+                    </div>
+                )}
             </header>
-            <article className="prose prose-lg prose-headings:font-serif prose-headings:text-ink-brown prose-p:text-ink-brown/90 prose-strong:text-ink-brown max-w-none">
-                <ReactMarkdown>{writing.content}</ReactMarkdown>
-            </article>
+            <Card>
+                <article className="prose prose-lg prose-headings:font-serif prose-headings:text-ink-brown prose-p:text-ink-brown/90 prose-strong:text-ink-brown max-w-none">
+                    <ReactMarkdown>{writing.content}</ReactMarkdown>
+                </article>
+            </Card>
             <div className="mt-12 text-center">
                 <Link to="/writing-room" className="text-gold-leaf hover:text-ink-brown transition-colors">
                     ← Return to the Library

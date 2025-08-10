@@ -1,5 +1,5 @@
 import React ,{ useState, useMemo } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore';
 import Button from './ui/Button';
 import { performSearch, type SearchResult } from '../utils/search';
@@ -11,6 +11,7 @@ const Header: React.FC = () => {
     // It summons the data it needs to be intelligent from the global store.
     const { currentUser, currentProjectId, userData, logout } = useAppStore();
     const navigate = useNavigate();
+    const location = useLocation();
     const breadcrumbs = useBreadcrumbs();
 
     // To Make Searching Possible
@@ -121,7 +122,7 @@ const Header: React.FC = () => {
             </div>
 
             {/* This is the Breadcrumb Trail. It only appears if a project is active, and we are not on the main project page. */}
-            {currentProjectId && breadcrumbs.length > 1 && (
+            {currentProjectId && location.pathname !== '/' && (
                 <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 pb-2 text-xs text-ink-brown/70 border-b border-ink-brown/10">
                     <nav>
                         <ol className="flex items-center gap-2 flex-wrap">

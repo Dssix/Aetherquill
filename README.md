@@ -18,6 +18,8 @@ The core philosophy of Aetherquill is the **"Web of Echoes"**—the idea that ev
 *   **🌍 World-Building Atlas:** Create and manage the realms, cities, and regions of your saga.
 *   **✍️ The Heart's Library:** A dedicated writing room featuring a beautiful **Markdown editor with a live side-by-side preview**. Write your lore, scenes, or notes and see them beautifully formatted as you type.
 *   **🕸️ The Web of Echoes:** The true magic of Aetherquill. Every entity can be linked to any other within a project. A **Character** can inhabit a **World** and be mentioned in multiple **Writings**. A **Timeline Event** can list the **Characters** who participated. A **Writing** can reference the **Events** it describes.
+*   **🔮 The Oracle's Mirror (Global Search):** A powerful, project-scoped search bar is always at your command. Instantly find any character, world, event, or writing by its name, tags, or content.
+*   **🧭 Immersive Detail Pages:** Dive deep into your lore with dedicated, read-only "viewer" pages for your Characters, Worlds, and Writings, allowing for focused contemplation of your creations.
 *   **🧠 The Eternal Scroll:** All your work—every user, every project, every character, world, event, and manuscript—is automatically saved to your browser's `localStorage`. Your scriptorium will be exactly as you left it every time you return.
 
 ### 🛠️ The Craftsman's Tools (Tech Stack)
@@ -27,6 +29,7 @@ The core philosophy of Aetherquill is the **"Web of Echoes"**—the idea that ev
 *   **State Management:** Zustand (A single, unified store with `subscribe` for persistence)
 *   **Styling:** TailwindCSS (with a custom vintage theme and the Typography plugin)
 *   **Searching:** Fuse.js (for lightweight fuzzy searching)
+*   **Drag & Drop (Planned):** `@dnd-kit` for future UI enhancements.
 
 ### 📜 Getting Started: Lighting the First Candle
 
@@ -53,31 +56,30 @@ To summon Aetherquill in your own local workshop, follow these simple incantatio
     ```
 
 5.  **Open the Portal:**
-    Open your web browser and navigate to the local address provided by Vite (usually `http://localhost:5173`). The scriptorium awaits. The first time you arrive, simply enter a name to create your scribe profile.
+    Open your web browser and navigate to the local address provided by Vite (usually `http://localhost:5173`). The scriptorium awaits. The first time you arrive, simply enter a name to create your scribe profile. Your old data (if any) will be automatically migrated into your new "default" user profile.
 
 ### 🗺️ Navigating the Scriptorium (Project Structure)
 
 The project is organized to be clean and scalable:
 
-```
-aetherquill/
-├── public/              # Static assets (fonts, background textures)
-└── src/
-    ├── components/      # Reusable components (Layout, Panels, UI elements)
-    ├── dataModels/      # Core data blueprints (UserData, ProjectData)
-    ├── hooks/           # Reusable React hooks (e.g., useDebounce)
-    ├── pages/           # Top-level components for each main route
-    ├── stores/          # The single, unified Zustand store (useAppStore)
-    ├── types/           # Entity-specific TypeScript interfaces (Character, World, etc.)
-    └── utils/           # Helper functions (storage, search, migration)
-```
+    aetherquill/
+    ├── public/ # Static assets (fonts, background textures)
+    └── src/
+    ├── components/ # Reusable components (Layout, Panels, UI elements)
+    ├── dataModels/ # Core data blueprints (UserData, ProjectData)
+    ├── hooks/ # Reusable React hooks (e.g., useDebounce, useBreadcrumbs)
+    ├── pages/ # Top-level components for each main route
+    ├── stores/ # The single, unified Zustand store (useAppStore)
+    ├── types/ # Entity-specific TypeScript interfaces (Character, World, etc.)
+    └── utils/ # Helper functions (storage, search, migration)
 
 ### 🔮 The Path Forward (Future Vision)
 
 The foundation is strong, but the work of a master craftsman is never truly done. The next enchantments to be woven are focused on polishing the scribe's experience:
 
-*   **🗂️ Dedicated Detail Pages:** Create beautiful, focused, read-only pages for viewing a single Character or World in all its glory, providing an immersive way to review your lore without the distraction of edit fields.
+*   **✨ The Living Panels:** Elevate the character creation experience by replacing the simple up/down arrows for trait reordering with a fluid **drag-and-drop** interface.
 *   **🎨 Dark Mode:** A "Midnight Parchment" theme for scribes who work best by moonlight, allowing you to switch between a light and dark version of the vintage aesthetic.
+*   **☁️ The Cloud Sanctum:** Prepare the application for an optional cloud backend (like Firebase/Firestore) to allow for data synchronization across multiple devices.
 
 ---
 

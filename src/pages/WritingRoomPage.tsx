@@ -8,6 +8,17 @@ import WritingEditorPanel from '../components/panels/WritingEditorPanel';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import {useAppStore} from "../stores/useAppStore.ts";
+import EmptyGalleryPlaceholder from "../components/ui/placeholders/EmptyGalleryPlaceholder.tsx";
+
+const QuillIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M4 20l10 -10l-1.5 -1.5l-10 10v1.5h1.5z" />
+        <path d="M13.5 6.5l1.5 -1.5l-10 10v1.5h1.5z" />
+        <path d="M18.5 1.5l-1.5 1.5" />
+        <path d="M15 8l-1.5 1.5" />
+    </svg>
+);
 
 const WritingRoomPage: React.FC = () => {
     // We summon our librarian, the Zustand store.
@@ -96,58 +107,61 @@ const WritingRoomPage: React.FC = () => {
                 />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredWritings.map(entry => {
-                    // --- LOOKUP LOGIC ---
-                    const linkedChars = entry.linkedCharacterIds?.map(id => characters.find(c => c.id === id)?.name).filter(Boolean);
-                    const linkedWorld = worlds.find(w => w.id === entry.linkedWorldId)?.name;
-                    const linkedEvents = entry.linkedEventIds?.map(id => events.find(e => e.id === id)?.title).filter(Boolean);
+            {writings.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredWritings.map(entry => {
+                        // --- LOOKUP LOGIC ---
+                        const linkedChars = entry.linkedCharacterIds?.map(id => characters.find(c => c.id === id)?.name).filter(Boolean);
+                        const linkedWorld = worlds.find(w => w.id === entry.linkedWorldId)?.name;
+                        const linkedEvents = entry.linkedEventIds?.map(id => events.find(e => e.id === id)?.title).filter(Boolean);
 
-                    return (
-                        <Link to={`/writing/${entry.id}`} key={entry.id}>
-                            <Card className="h-full opacity-0 animate-fade-in-up flex flex-col justify-between hover:!border-gold-leaf">
-                                <div>
-                                    <h3 className="text-xl font-bold text-ink-brown border-b border-ink-brown/10 pb-2 mb-3">{entry.title}</h3>
-                                    <p className="text-xs text-ink-brown/60 mb-3">
-                                        Updated: {new Date(entry.updatedAt).toLocaleDateString()}
-                                    </p>
-                                    {/* Display tags on the card */}
-                                    {entry.tags && entry.tags.length > 0 && (
-                                        <div className="mb-3 flex flex-wrap gap-1">
-                                            {entry.tags.slice(0, 3).map(tag => (
-                                                <span key={tag} className="text-xs bg-ink-brown/10 text-ink-brown/80 px-2 py-0.5 rounded-full">{tag}</span>
-                                            ))}
+                        return (
+                            <Link to={`/writing/${entry.id}`} key={entry.id}>
+                                <Card className="h-full opacity-0 animate-fade-in-up flex flex-col justify-between hover:!border-gold-leaf">
+                                    <div>
+                                        <h3 className="text-xl font-bold text-ink-brown border-b border-ink-brown/10 pb-2 mb-3">{entry.title}</h3>
+                                        <p className="text-xs text-ink-brown/60 mb-3">
+                                            Updated: {new Date(entry.updatedAt).toLocaleDateString()}
+                                        </p>
+                                        {/* Display tags on the card */}
+                                        {entry.tags && entry.tags.length > 0 && (
+                                            <div className="mb-3 flex flex-wrap gap-1">
+                                                {entry.tags.slice(0, 3).map(tag => (
+                                                    <span key={tag} className="text-xs bg-ink-brown/10 text-ink-brown/80 px-2 py-0.5 rounded-full">{tag}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="prose prose-sm max-w-none text-ink-brown/80 line-clamp-4">
+                                            <ReactMarkdown>{entry.content}</ReactMarkdown>
+                                        </div>
+                                    </div>
+
+                                    {/* --- THIS IS DISPLAY SECTION --- */}
+                                    {(linkedWorld || linkedChars?.length || linkedEvents?.length) && (
+                                        <div className="mt-4 pt-4 border-t border-ink-brown/10 text-xs text-ink-brown/70 space-y-1">
+                                            {linkedWorld && <p>🌍 {linkedWorld}</p>}
+                                            {linkedChars && linkedChars.length > 0 && <p>🧝 {linkedChars.join(', ')}</p>}
+                                            {linkedEvents && linkedEvents.length > 0 && <p>⏳ {linkedEvents.join(', ')}</p>}
                                         </div>
                                     )}
-                                    <div className="prose prose-sm max-w-none text-ink-brown/80 line-clamp-4">
-                                        <ReactMarkdown>{entry.content}</ReactMarkdown>
+
+                                    <div className="mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
+                                        {/* We stop the Link's navigation when clicking the buttons */}
+                                        <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={(e) => { e.preventDefault(); openPanelForEdit(entry); }}>Edit</Button>
+                                        <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={(e) => { e.preventDefault(); handleDelete(entry.id); }}>Delete</Button>
                                     </div>
-                                </div>
-
-                                {/* --- THIS IS DISPLAY SECTION --- */}
-                                {(linkedWorld || linkedChars?.length || linkedEvents?.length) && (
-                                    <div className="mt-4 pt-4 border-t border-ink-brown/10 text-xs text-ink-brown/70 space-y-1">
-                                        {linkedWorld && <p>🌍 {linkedWorld}</p>}
-                                        {linkedChars && linkedChars.length > 0 && <p>🧝 {linkedChars.join(', ')}</p>}
-                                        {linkedEvents && linkedEvents.length > 0 && <p>⏳ {linkedEvents.join(', ')}</p>}
-                                    </div>
-                                )}
-
-                                <div className="mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
-                                    {/* We stop the Link's navigation when clicking the buttons */}
-                                    <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={(e) => { e.preventDefault(); openPanelForEdit(entry); }}>Edit</Button>
-                                    <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={(e) => { e.preventDefault(); handleDelete(entry.id); }}>Delete</Button>
-                                </div>
-                            </Card>
-                        </Link>
-                    );
-                })}
-            </div>
-
-            {writings.length === 0 && (
-                <Card className="text-center opacity-0 animate-fade-in-up col-span-full">
-                    <p className="text-lg text-ink-brown/90 my-6">The library is quiet. Pen thy first manuscript to begin.</p>
-                </Card>
+                                </Card>
+                            </Link>
+                        );
+                    })}
+                </div>
+            ) : (
+                // If no writings exist at all, we render our beautiful placeholder.
+                <EmptyGalleryPlaceholder
+                    icon={<QuillIcon />}
+                    title="The Unwritten Page"
+                    message="The library is quiet, its shelves awaiting the first of thy tales. Pen a new manuscript to begin."
+                />
             )}
 
             <WritingEditorPanel

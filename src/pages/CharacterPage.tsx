@@ -6,6 +6,18 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import TraitDisplay from '../components/ui/TraitDisplay';
 import { Link } from 'react-router-dom';
+import EmptyGalleryPlaceholder from '../components/ui/placeholders/EmptyGalleryPlaceholder';
+
+// Icon Define
+const CrestIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M12 21l-8 -4.5v-9l8 -4.5l8 4.5v9z" />
+        <path d="M12 12l8 -4.5" />
+        <path d="M12 12v9" />
+        <path d="M12 12l-8 -4.5" />
+    </svg>
+);
 
 const CharacterPage: React.FC = () => {
     // Import from the useAppStore
@@ -83,63 +95,60 @@ const CharacterPage: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {characters.map(character => {
-                    const backgroundTrait = character.traits.find(trait => trait.id === 'background');
-                    const worldName = getWorldName(character.linkedWorldId);
-                    const writingTitles = getWritingTitles(character.linkedWritingIds);
+            {characters.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {characters.map(character => {
+                        const backgroundTrait = character.traits.find(trait => trait.id === 'background');
+                        const worldName = getWorldName(character.linkedWorldId);
+                        const writingTitles = getWritingTitles(character.linkedWritingIds);
 
-                    return (
-                        <Link to={`/characters/${character.id}`} key={character.id}>
-                            <Card key={character.id} className="opacity-0 animate-fade-in-up flex flex-col justify-between">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-ink-brown border-b border-ink-brown/10 pb-2 mb-3">{character.name}</h3>
-                                    <p className="text-sm text-gold-leaf font-semibold">{character.species}</p>
-                                    {/* --- Step 5: Display the world name --- */}
-                                    {worldName && <p className="text-xs text-ink-brown/60 mt-1">🌍 {worldName}</p>}
-                                    {backgroundTrait && <p className="mt-2 text-ink-brown/90 italic line-clamp-3">"{backgroundTrait.value}"</p>}
-                                </div>
-
-                                {/* The unified traits section remains the same */}
-                                {character.traits && character.traits.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t border-ink-brown/10">
-                                        <div className="space-y-1">
-                                            {character.traits.map((trait) => (
-                                                trait.id !== 'background' && <TraitDisplay key={trait.id} label={trait.label} value={trait.value} />
-                                            ))}
-                                        </div>
+                        return (
+                            <Link to={`/characters/${character.id}`} key={character.id}>
+                                <Card key={character.id} className="opacity-0 animate-fade-in-up flex flex-col justify-between">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-ink-brown border-b border-ink-brown/10 pb-2 mb-3">{character.name}</h3>
+                                        <p className="text-sm text-gold-leaf font-semibold">{character.species}</p>
+                                        {/* --- Step 5: Display the world name --- */}
+                                        {worldName && <p className="text-xs text-ink-brown/60 mt-1">🌍 {worldName}</p>}
+                                        {backgroundTrait && <p className="mt-2 text-ink-brown/90 italic line-clamp-3">"{backgroundTrait.value}"</p>}
                                     </div>
-                                )}
-                                {writingTitles.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t border-ink-brown/10">
-                                        <h4 className="text-xs font-bold text-ink-brown/70 uppercase tracking-wider mb-2">✍️ Mentions</h4>
-                                        <div className="space-y-1 text-sm text-ink-brown/80">
-                                            {writingTitles.map(title => <p key={title}>- {title}</p>)}
+
+                                    {/* The unified traits section remains the same */}
+                                    {character.traits && character.traits.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-ink-brown/10">
+                                            <div className="space-y-1">
+                                                {character.traits.map((trait) => (
+                                                    trait.id !== 'background' && <TraitDisplay key={trait.id} label={trait.label} value={trait.value} />
+                                                ))}
+                                            </div>
                                         </div>
+                                    )}
+                                    {writingTitles.length > 0 && (
+                                        <div className="mt-4 pt-4 border-t border-ink-brown/10">
+                                            <h4 className="text-xs font-bold text-ink-brown/70 uppercase tracking-wider mb-2">✍️ Mentions</h4>
+                                            <div className="space-y-1 text-sm text-ink-brown/80">
+                                                {writingTitles.map(title => <p key={title}>- {title}</p>)}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* --- Add Edit and Delete buttons --- */}
+                                    <div className="mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
+                                        <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={() => openPanelForEdit(character)}>Edit</Button>
+                                        <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={() => handleDeleteCharacter(character.id)}>Delete</Button>
                                     </div>
-                                )}
-
-                                {/* --- Add Edit and Delete buttons --- */}
-                                <div className="mt-4 pt-4 border-t border-ink-brown/10 flex justify-end gap-2">
-                                    <Button variant="secondary" className="!px-3 !py-1 text-xs" onClick={() => openPanelForEdit(character)}>Edit</Button>
-                                    <Button variant="secondary" className="!px-3 !py-1 text-xs !text-red-800/80 !border-red-800/30 hover:!bg-red-500/10" onClick={() => handleDeleteCharacter(character.id)}>Delete</Button>
-                                </div>
-                            </Card>
-                        </Link>
-                    );
-                })}
-            </div>
-
-
-            {/* --- Empty State Message --- */}
-            {characters.length === 0 && (
-                <Card className="text-center mb-12 md:mb-16 opacity-0 animate-fade-in-up">
-                    <p className="text-lg text-ink-brown/90 my-6 leading-relaxed">
-                        The gallery is empty.
-                        <br />
-                        Summon forth a new soul to begin thy cast.
-                    </p>
-                </Card>
+                                </Card>
+                            </Link>
+                        );
+                    })}
+                </div>
+                ):(
+                // Empty State
+                <EmptyGalleryPlaceholder
+                    icon={<CrestIcon />}
+                    title="The Stage is Set"
+                    message="The gallery awaits the souls of thy tale. Summon forth a new character to begin their journey."
+                />
             )}
 
             {/* --- The Panel Itself --- */}
