@@ -7,15 +7,22 @@ import { type Era } from '../data/eraManager';
 import { type World } from '../types/world';
 import { type WritingEntry } from './useWritingStore';
 
+// Defining the theme type
+type Theme = 'light' | 'dark';
+
 // This is the blueprint for our entire application's state.
 interface AppState {
     currentUser: string | null;
     userData: UserData | null; // The full data object for the logged-in user.
     currentProjectId: string | null;
+    theme: Theme;
 
     // Login Action
     login: (username: string, userData: UserData) => void;
     logout: () => void;
+
+    // Theme Toggle
+    toggleTheme: () => void;
 
     // Project Action
     setCurrentProject: (projectId: string) => void;
@@ -58,6 +65,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     userData: null,
     currentProjectId: null,
 
+    // Initialize the theme state
+    theme: (localStorage.getItem('aetherquill__theme') as Theme) || 'light',
+
 
     // Login Actions
     // --- Session Actions ---
@@ -77,6 +87,18 @@ export const useAppStore = create<AppState>((set, get) => ({
             currentUser: null,
             userData: null,
             currentProjectId: null
+        });
+    },
+
+
+    // Theme Action
+    toggleTheme: () => {
+        set(state => {
+            const newTheme = state.theme === 'light' ? 'dark' : 'light';
+            // Save the new preference to localStorage.
+            localStorage.setItem('aetherquill__theme', newTheme);
+            // Update the state.
+            return { theme: newTheme };
         });
     },
 

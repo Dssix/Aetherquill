@@ -60,19 +60,19 @@ const WritingEditorPanel: React.FC<WritingEditorPanelProps> = ({ isOpen, onClose
     return (
         <div className={`fixed inset-0 z-40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <div className={`absolute right-0 top-0 h-full w-full max-w-4xl bg-parchment shadow-2xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute right-0 top-0 h-full w-full max-w-4xl bg-background shadow-2xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <div className="p-6 h-full flex flex-col">
                     <input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Title of thy Manuscript..."
-                        className="w-full p-2 text-3xl font-bold font-serif bg-transparent border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf mb-4 flex-shrink-0"
+                        className="w-full p-2 text-3xl font-bold font-serif bg-transparent border-b-2 border-border focus:outline-none focus:border-primary mb-4 flex-shrink-0"
                     />
                     <input
                         value={tags}
                         onChange={(e) => setTags(e.target.value)}
                         placeholder="Tags (comma, separated)..."
-                        className="w-full p-1 text-sm font-serif bg-transparent border-b border-ink-brown/10 focus:outline-none focus:border-gold-leaf mb-4 flex-shrink-0"
+                        className="w-full p-1 text-sm font-serif bg-transparent border-b border-border focus:outline-none focus:border-primary mb-4 flex-shrink-0"
                     />
 
                     {/* Two-column layout for editor and live preview */}
@@ -83,12 +83,12 @@ const WritingEditorPanel: React.FC<WritingEditorPanelProps> = ({ isOpen, onClose
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                                 placeholder="Let thy soul flow onto the page..."
-                                className="w-full h-full p-4 bg-parchment-highlight/70 ... flex-grow"
+                                className="w-full h-full p-4 bg-card/70 ... flex-grow"
                             />
                             <select
                                 value={linkedWorldId || ''}
                                 onChange={(e) => setLinkedWorldId(e.target.value || null)}
-                                className="w-full p-2 bg-parchment/70 border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf flex-shrink-0"
+                                className="w-full p-2 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary flex-shrink-0"
                             >
                                 <option value="">Link to a World...</option>
                                 {worlds.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -97,7 +97,7 @@ const WritingEditorPanel: React.FC<WritingEditorPanelProps> = ({ isOpen, onClose
 
                         {/* Column 2: Live Preview and Entity Linkers */}
                         <div className="flex flex-col gap-4 overflow-y-auto pr-2">
-                            <div className="w-full p-4 bg-parchment-highlight/50 ... flex-grow">
+                            <div className="w-full p-4 bg-card/50 ... flex-grow">
                                 <article className="prose prose-sm ...">
                                     <ReactMarkdown>{content}</ReactMarkdown>
                                 </article>

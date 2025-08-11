@@ -8,9 +8,7 @@ const Layout: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen w-full flex flex-col bg-cover bg-center bg-fixed"
-            // The background image is now controlled by the Layout, ensuring consistency.
-            style={{ backgroundImage: "url('/parchment-bg.png')" }}
+            className="min-h-screen w-full flex flex-col"
         >
             {/* --- HEADER --- */}
             <Header/>
@@ -22,8 +20,8 @@ const Layout: React.FC = () => {
             </main>
 
             {/* --- FOOTER --- */}
-            <footer className="w-full text-center py-4 bg-parchment/80 backdrop-blur-sm border-t border-ink-brown/10 mt-auto">
-                <p className="text-xs text-ink-brown/60 italic">
+            <footer className="w-full text-center py-4 bg-popover/80 backdrop-blur-sm border-t border-border mt-auto">
+                <p className="text-xs text-muted-foreground italic">
                     Forged with quills & dreams
                 </p>
             </footer>

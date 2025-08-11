@@ -36,8 +36,8 @@ const CharacterViewerPage: React.FC = () => {
     if (!character) {
         return (
             <div className="text-center p-12 animate-fade-in">
-                <h2 className="text-2xl text-ink-brown">Soul not found in this chronicle.</h2>
-                <Link to="/characters" className="text-gold-leaf mt-4 inline-block">Return to the Gallery</Link>
+                <h2 className="text-2xl text-foreground">Soul not found in this chronicle.</h2>
+                <Link to="/characters" className="text-primary mt-4 inline-block">Return to the Gallery</Link>
             </div>
         );
     }
@@ -45,10 +45,10 @@ const CharacterViewerPage: React.FC = () => {
     // If the character WAS found, the component continues and renders the main content.
     return (
         <div className="w-full max-w-3xl mx-auto p-4 sm:p-8 animate-fade-in">
-            <header className="mb-8 pb-4 border-b border-ink-brown/20">
-                <h1 className="text-5xl font-bold font-serif text-ink-brown">{character.name}</h1>
-                <p className="text-lg text-gold-leaf font-semibold mt-1">{character.species}</p>
-                {worldName && <p className="text-sm text-ink-brown/70 mt-2">🌍 From the realm of {worldName}</p>}
+            <header className="mb-8 pb-4 border-b border-border">
+                <h1 className="text-5xl font-bold font-serif text-foreground">{character.name}</h1>
+                <p className="text-lg text-primary font-semibold mt-1">{character.species}</p>
+                {worldName && <p className="text-sm text-foreground/70 mt-2">🌍 From the realm of {worldName}</p>}
             </header>
 
             <Card>
@@ -61,19 +61,19 @@ const CharacterViewerPage: React.FC = () => {
 
             {(writingLinks.length > 0 || eventLinks.length > 0) && (
                 <div className="mt-8">
-                    <h2 className="text-2xl font-bold text-ink-brown font-serif mb-4">Web of Echoes</h2>
+                    <h2 className="text-2xl font-bold text-foreground font-serif mb-4">Web of Echoes</h2>
                     <Card>
                         {writingLinks.length > 0 && (
                             <div className="space-y-1">
-                                <h3 className="text-xs font-bold text-ink-brown/70 uppercase tracking-wider mb-2">✍️ Mentions</h3>
+                                <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">✍️ Mentions</h3>
                                 {writingLinks.map(writing =>
-                                    <Link key={writing.id} to={`/writing/${writing.id}`} className="text-sm text-gold-leaf hover:underline block">- {writing.title}</Link>
+                                    <Link key={writing.id} to={`/writing/${writing.id}`} className="text-sm text-primary hover:underline block">- {writing.title}</Link>
                                 )}
                             </div>
                         )}
                         {eventLinks.length > 0 && (
                             <div className={`space-y-1 ${writingLinks.length > 0 ? 'mt-4' : ''}`}>
-                                <h3 className="text-xs font-bold text-ink-brown/70 uppercase tracking-wider mb-2">⏳ Appearances</h3>
+                                <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">⏳ Appearances</h3>
                                 {eventLinks.map(event => <p key={event.id} className="text-sm">- {event.title}</p>)}
                             </div>
                         )}
@@ -82,7 +82,7 @@ const CharacterViewerPage: React.FC = () => {
             )}
 
             <div className="mt-12 text-center">
-                <Link to="/characters" className="text-gold-leaf hover:text-ink-brown transition-colors">
+                <Link to="/characters" className="text-primary hover:text-foreground transition-colors">
                     ← Return to the Gallery of Souls
                 </Link>
             </div>

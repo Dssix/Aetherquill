@@ -13,7 +13,7 @@ const Button: React.FC<ButtonProps> = ({ children, variant = 'primary', classNam
     // Specific styles for each variant.
     const variants = {
         primary: "bg-gold-leaf text-white hover:opacity-90 focus:ring-gold-leaf",
-        secondary: "bg-transparent border border-gold-leaf text-gold-leaf hover:bg-gold-leaf/10 focus:ring-gold-leaf",
+        secondary: "bg-transparent border border-gold-leaf text-primary hover:bg-gold-leaf/10 focus:ring-gold-leaf",
     };
 
     return (

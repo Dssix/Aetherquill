@@ -18,12 +18,12 @@ const EraDivider: React.FC<EraDividerProps> = ({ era, onEdit }) => {
             <div className="flex-grow h-px bg-gradient-to-r from-transparent via-ink-brown/20 to-transparent"></div>
 
             <div className="text-center mx-4">
-                <h2 className="text-xl font-bold text-gold-leaf tracking-widest uppercase">{era.name}</h2>
+                <h2 className="text-xl font-bold text-primary tracking-widest uppercase">{era.name}</h2>
 
                 {/* We conditionally render the date range, but only if the dates exist.
             This prevents it from showing for our special "Unassigned Events" group. */}
                 {era.startDate && era.endDate && (
-                    <p className="text-xs text-ink-brown/60">{`${era.startDate} – ${era.endDate}`}</p>
+                    <p className="text-xs text-foreground/60">{`${era.startDate} – ${era.endDate}`}</p>
                 )}
             </div>
 
@@ -36,7 +36,7 @@ const EraDivider: React.FC<EraDividerProps> = ({ era, onEdit }) => {
             {era.id !== 'no-era' && (
                 <button
                     onClick={onEdit}
-                    className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-parchment-highlight px-2 py-1 rounded border border-ink-brown/20"
+                    className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-card px-2 py-1 rounded border border-border"
                 >
                     Edit Era
                 </button>

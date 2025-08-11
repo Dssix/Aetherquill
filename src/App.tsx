@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore';
 import { loadUserData } from './utils/storage';
+import { useThemeManager } from './hooks/useThemeManager';
 
 // Page Imports
 import LoginPage from './pages/LoginPage';
@@ -41,6 +42,9 @@ function App() {
 
     const login = useAppStore((state) => state.login);
     const [isInitializing, setIsInitializing] = useState(true);
+
+    // Calling theme manager, makes sure it's always running and listens to theme changes
+    useThemeManager();
 
     useEffect(() => {
         const checkUser = () => {

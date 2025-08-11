@@ -61,15 +61,15 @@ export const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit, initial
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <form onSubmit={handleSubmit} className="bg-parchment p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-4xl border border-gold-leaf/50 animate-fade-in-down flex flex-col h-[90vh]">
-                <h2 className="text-3xl text-ink-brown mb-6 font-serif flex-shrink-0">{initialData ? 'Edit Chronicle Entry' : 'Add New Entry'}</h2>
+            <form onSubmit={handleSubmit} className="bg-background p-6 sm:p-8 rounded-lg shadow-2xl w-full max-w-4xl border border-gold-leaf/50 animate-fade-in-down flex flex-col h-[90vh]">
+                <h2 className="text-3xl text-foreground mb-6 font-serif flex-shrink-0">{initialData ? 'Edit Chronicle Entry' : 'Add New Entry'}</h2>
 
                 <div className="grid md:grid-cols-2 gap-6 flex-grow overflow-y-auto pr-2">
                     {/* Column 1: Core Details */}
                     <div className="space-y-4">
                         <input name="title" value={formData.title} onChange={handleChange} placeholder="Event Title" className="w-full p-2 ... transition-colors" />
                         <label>
-                            <span className="text-xs text-ink-brown/70">Event Date</span>
+                            <span className="text-xs text-foreground/70">Event Date</span>
                             <input type="date" name="date" value={formData.date} onChange={handleChange} className="w-full p-2 ... transition-colors" />
                         </label>
                         <input name="tags" value={formData.tags} onChange={handleChange} placeholder="Tags (comma, separated)" className="w-full p-2 ... transition-colors" />
@@ -85,7 +85,7 @@ export const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit, initial
 
                 <div className="flex justify-end gap-4 mt-6 flex-shrink-0">
                     <Button variant="secondary" type="button" onClick={onClose}>Cancel</Button>
-                    <Button type="submit">Save Entry</Button>
+                    <Button variant="secondary" type="submit">Save Entry</Button>
                 </div>
             </form>
         </div>

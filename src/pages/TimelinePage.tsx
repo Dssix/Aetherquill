@@ -155,8 +155,8 @@ const TimelinePage: React.FC = () => {
 
     return (
         <div className="w-full max-w-3xl mx-auto p-4 sm:p-8">
-            <h1 className="text-4xl font-bold text-ink-brown text-center mb-2">Chronicle of Eras</h1>
-            <p className="text-ink-brown/70 italic text-center mb-8">For the chronicle: {projectData.name}</p>
+            <h1 className="text-4xl font-bold text-foreground text-center mb-2">Chronicle of Eras</h1>
+            <p className="text-foreground/70 italic text-center mb-8">For the chronicle: {projectData.name}</p>
             <div className="max-w-3xl mx-auto">
                 <div className="flex justify-center items-center gap-4 mb-8 opacity-0 animate-fade-in-up" style={{animationDelay: '300ms'}}>
                     <Button onClick={handleOpenEventFormForAdd}>
@@ -186,7 +186,7 @@ const TimelinePage: React.FC = () => {
                         } as React.CSSProperties}
                     >
                         {/* Column 1: The Master Spine (no changes needed here) */}
-                        <div className="w-0.5 h-full opacity-0 animate-reveal-up bg-ink-brown/20 mt-16"></div>
+                        <div className="w-0.5 h-full opacity-0 animate-reveal-up bg-muted mt-16"></div>
 
                         {/* Column 2: The Content Flow (no changes needed here) */}
                         <div className="space-y-8">
@@ -215,7 +215,7 @@ const TimelinePage: React.FC = () => {
                                 ))
                             ) : (
                                 <div className="text-center py-16 opacity-0 animate-fade-in-up" style={{animationDelay: '500ms'}}>
-                                    <p className="text-ink-brown/70">No entries match thy filter...</p>
+                                    <p className="text-foreground/70">No entries match thy filter...</p>
                                 </div>
                             )}
                         </div>

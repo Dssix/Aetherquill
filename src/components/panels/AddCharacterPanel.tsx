@@ -28,7 +28,7 @@ interface AddCharacterPanelProps {
 // A helper component for the fixed fields.
 const FormField = ({ label, children }: { label: string, children: React.ReactNode }) => (
     <label className="block">
-        <span className="text-sm font-semibold text-ink-brown/80">{label}</span>
+        <span className="text-sm font-semibold text-muted-foreground">{label}</span>
         {children}
     </label>
 );
@@ -148,24 +148,24 @@ const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, 
     return (
         <div className={`fixed inset-0 z-40 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <div className={`absolute right-0 top-0 h-full w-full max-w-lg bg-parchment shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute right-0 top-0 h-full w-full max-w-lg bg-background shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <form onSubmit={handleSubmit} className="p-6 h-full flex flex-col">
-                    <h2 className="text-3xl font-bold text-ink-brown font-serif mb-6 flex-shrink-0">Craft a New Soul</h2>
+                    <h2 className="text-3xl font-bold text-foreground font-serif mb-6 flex-shrink-0">Craft a New Soul</h2>
 
                     <div className="flex-grow space-y-6 overflow-y-auto pr-2">
-                        <Card className="!bg-parchment-highlight/70">
+                        <Card className="!bg-card/70">
                             <div className="space-y-4">
                                 <FormField label="Name">
-                                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="What is thy name, noble soul?" className="w-full p-2 mt-1 bg-parchment/70 border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf" />
+                                    <input value={name} onChange={(e) => setName(e.target.value)} placeholder="What is thy name, noble soul?" className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary" />
                                 </FormField>
                                 <FormField label="Species">
-                                    <input value={species} onChange={(e) => setSpecies(e.target.value)} placeholder="e.g., Human, Elf, Star-forged Automaton" className="w-full p-2 mt-1 bg-parchment/70 border-b-2 border-ink-brown/20 focus-outline-none focus:border-gold-leaf"/>
+                                    <input value={species} onChange={(e) => setSpecies(e.target.value)} placeholder="e.g., Human, Elf, Star-forged Automaton" className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary"/>
                                 </FormField>
                                 <FormField label="Inhabits World">
                                     <select
                                         value={linkedWorldId || ''}
                                         onChange={(e) => setLinkedWorldId(e.target.value || null)}
-                                        className="w-full p-2 mt-1 bg-parchment/70 border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf"
+                                        className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary"
                                     >
                                         <option value="">None</option>
                                         {worlds.map(world => (
@@ -175,7 +175,7 @@ const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, 
                                 </FormField>
                                 <FormField label="Mentioned in Writings">
                                     {/* --- INTUITIVE LISTBOX --- */}
-                                    <div className="w-full p-2 h-32 bg-parchment/70 border-2 border-ink-brown/20 rounded-md overflow-y-auto">
+                                    <div className="w-full p-2 h-32 bg-input/50 border-2 border-border rounded-md overflow-y-auto">
                                         {writings.length > 0 ? (
                                             // We map over all available writings to create a list of clickable buttons.
                                             writings.map(writing => {
@@ -189,41 +189,41 @@ const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, 
                                                         className={`
                                                             w-full text-left p-1 rounded transition-colors text-sm
                                                             ${isActive
-                                                            ? 'bg-gold-leaf/30 text-ink-brown font-semibold' // Style for ACTIVE (selected) items
-                                                            : 'hover:bg-gold-leaf/10 text-ink-brown/80'      // Style for INACTIVE items
+                                                            ? 'bg-gold-leaf/30 text-foreground font-semibold' // Style for ACTIVE (selected) items
+                                                            : 'hover:bg-gold-leaf/10 text-muted-foreground'      // Style for INACTIVE items
                                                         }`}
                                                     >{writing.title}
                                                     </button>
                                                 );
-                                            })) : (<p className="text-sm text-ink-brown/60 italic p-1">No manuscripts exist yet.</p>)}
+                                            })) : (<p className="text-sm text-muted-foreground italic p-1">No manuscripts exist yet.</p>)}
                                     </div>
                                 </FormField>
                             </div>
                         </Card>
 
-                        <Card className="!bg-parchment-highlight/70">
+                        <Card className="!bg-card/70">
                             <div className="space-y-4">
                                 {reorderableFields.map((field, index) => (
-                                    <div key={field.id} className="p-2 border border-ink-brown/10 rounded-md bg-parchment/50">
+                                    <div key={field.id} className="p-2 border border-border rounded-md bg-background/50">
                                         <div className="flex items-start gap-2">
-                                            <div className="flex flex-col items-center pt-1 text-ink-brown/50">
-                                                <button type="button" onClick={() => moveField(index, 'up')} disabled={index === 0} className="disabled:opacity-20 hover:text-gold-leaf">▲</button>
-                                                <button type="button" onClick={() => moveField(index, 'down')} disabled={index === reorderableFields.length - 1} className="disabled:opacity-20 hover:text-gold-leaf">▼</button>
+                                            <div className="flex flex-col items-center pt-1 text-muted-foreground">
+                                                <button type="button" onClick={() => moveField(index, 'up')} disabled={index === 0} className="disabled:opacity-20 hover:text-accent">▲</button>
+                                                <button type="button" onClick={() => moveField(index, 'down')} disabled={index === reorderableFields.length - 1} className="disabled:opacity-20 hover:text-accent">▼</button>
                                             </div>
                                             <div className="flex-grow">
                                                 {field.isCustom ? (
-                                                    <input value={field.label} onChange={(e) => handleCustomLabelChange(field.id, e.target.value)} placeholder="Custom Label..." className="w-full p-1 mb-1 text-sm font-semibold bg-transparent border-b border-ink-brown/10 focus:outline-none focus:border-gold-leaf/50" />
+                                                    <input value={field.label} onChange={(e) => handleCustomLabelChange(field.id, e.target.value)} placeholder="Custom Label..." className="w-full p-1 mb-1 text-sm font-semibold bg-transparent border-b border-border focus:outline-none focus:border-primary/50" />
                                                 ) : (
-                                                    <label className="text-sm font-semibold text-ink-brown/80 block mb-1">{field.label}</label>
+                                                    <label className="text-sm font-semibold text-muted-foreground block mb-1">{field.label}</label>
                                                 )}
                                                 {field.isTextarea ? (
-                                                    <textarea value={field.value} onChange={(e) => handleReorderableFieldChange(field.id, e.target.value)} rows={4} placeholder={field.placeholder} className="w-full p-2 mt-1 bg-parchment/70 border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf text-sm" />
+                                                    <textarea value={field.value} onChange={(e) => handleReorderableFieldChange(field.id, e.target.value)} rows={4} placeholder={field.placeholder} className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary text-sm" />
                                                 ) : (
-                                                    <input value={field.value} onChange={(e) => handleReorderableFieldChange(field.id, e.target.value)} placeholder={field.placeholder} className="w-full p-2 mt-1 bg-parchment/70 border-b-2 border-ink-brown/20 focus:outline-none focus:border-gold-leaf text-sm" />
+                                                    <input value={field.value} onChange={(e) => handleReorderableFieldChange(field.id, e.target.value)} placeholder={field.placeholder} className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary text-sm" />
                                                 )}
                                             </div>
                                             {field.isCustom && (
-                                                <button type="button" onClick={() => handleRemoveField(field.id)} className="text-red-800/80 hover:text-red-700 p-1 rounded-full hover:bg-red-500/10 transition-colors flex-shrink-0" title="Remove Field">
+                                                <button type="button" onClick={() => handleRemoveField(field.id)} className="text-destructive hover:text-destructive/80 p-1 rounded-full hover:bg-red-500/10 transition-colors flex-shrink-0" title="Remove Field">
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
@@ -241,7 +241,7 @@ const AddCharacterPanel: React.FC<AddCharacterPanelProps> = ({ isOpen, onClose, 
                         </Card>
                     </div>
 
-                    <div className="mt-auto pt-6 flex justify-end gap-4 border-t border-ink-brown/10 flex-shrink-0">
+                    <div className="mt-auto pt-6 flex justify-end gap-4 border-t border-border flex-shrink-0">
                         <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
                         <Button type="submit">Bind This Soul</Button>
                     </div>

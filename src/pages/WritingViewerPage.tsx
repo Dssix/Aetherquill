@@ -44,8 +44,8 @@ const WritingViewerPage: React.FC = () => {
         }
         return (
             <div className="text-center p-12 animate-fade-in">
-                <h2 className="text-2xl text-ink-brown">Manuscript not found in this chronicle.</h2>
-                <Link to="/writing-room" className="text-gold-leaf mt-4 inline-block">Return to the Library</Link>
+                <h2 className="text-2xl text-foreground">Manuscript not found in this chronicle.</h2>
+                <Link to="/writing-room" className="text-primary mt-4 inline-block">Return to the Library</Link>
             </div>
         );
     }
@@ -53,31 +53,31 @@ const WritingViewerPage: React.FC = () => {
     // The JSX for rendering the manuscript remains the same.
     return (
         <div className="w-full max-w-3xl mx-auto p-4 sm:p-8 animate-fade-in">
-            <header className="mb-8 pb-4 border-b border-ink-brown/20">
-                <h1 className="text-5xl font-bold font-serif text-ink-brown">{writing.title}</h1>
-                <div className="flex justify-between items-center mt-2 text-xs text-ink-brown/60">
+            <header className="mb-8 pb-4 border-b border-border">
+                <h1 className="text-5xl font-bold font-serif text-foreground">{writing.title}</h1>
+                <div className="flex justify-between items-center mt-2 text-xs text-foreground/60">
                     <span>Created: {new Date(writing.createdAt).toLocaleString()}</span>
                     <span>Updated: {new Date(writing.updatedAt).toLocaleString()}</span>
                 </div>
                 {writing.tags && writing.tags.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {writing.tags.map(tag => (
-                            <span key={tag} className="text-xs bg-ink-brown/10 text-ink-brown/80 px-2 py-0.5 rounded-full">{tag}</span>
+                            <span key={tag} className="text-xs bg-ink-brown/10 text-muted-foreground px-2 py-0.5 rounded-full">{tag}</span>
                         ))}
                     </div>
                 )}
                 {(linkedWorld || (linkedChars && linkedChars.length > 0) || (linkedEvents && linkedEvents.length > 0)) && (
-                    <div className="mt-4 text-xs text-ink-brown/70 space-y-1">
+                    <div className="mt-4 text-xs text-foreground/70 space-y-1">
                         {linkedWorld && (
                             <p>
-                                🌍 In the realm of <Link to={`/worlds/${linkedWorld.id}`} className="text-gold-leaf hover:underline">{linkedWorld.name}</Link>
+                                🌍 In the realm of <Link to={`/worlds/${linkedWorld.id}`} className="text-primary hover:underline">{linkedWorld.name}</Link>
                             </p>
                         )}
                         {linkedChars && linkedChars.length > 0 && (
                             <p>
                                 🧝 Featuring: {linkedChars.map((char, index) => (
                                 <React.Fragment key={char.id}>
-                                    <Link to={`/characters/${char.id}`} className="text-gold-leaf hover:underline">{char.name}</Link>
+                                    <Link to={`/characters/${char.id}`} className="text-primary hover:underline">{char.name}</Link>
                                     {index < linkedChars.length - 1 ? ', ' : ''}
                                 </React.Fragment>
                             ))}
@@ -87,7 +87,7 @@ const WritingViewerPage: React.FC = () => {
                             <p>
                                 ⏳ Pertaining to: {linkedEvents.map((event, index) => (
                                 <React.Fragment key={event.id}>
-                                    <Link to={`/timeline#${event.id}`} className="text-gold-leaf hover:underline">{event.title}</Link>
+                                    <Link to={`/timeline#${event.id}`} className="text-primary hover:underline">{event.title}</Link>
                                     {index < linkedEvents.length - 1 ? ', ' : ''}
                                 </React.Fragment>
                             ))}
@@ -97,12 +97,12 @@ const WritingViewerPage: React.FC = () => {
                 )}
             </header>
             <Card>
-                <article className="prose prose-lg prose-headings:font-serif prose-headings:text-ink-brown prose-p:text-ink-brown/90 prose-strong:text-ink-brown max-w-none">
+                <article className="prose prose-lg prose-headings:font-serif prose-headings:text-foreground prose-p:text-foreground/90 prose-strong:text-foreground max-w-none">
                     <ReactMarkdown>{writing.content}</ReactMarkdown>
                 </article>
             </Card>
             <div className="mt-12 text-center">
-                <Link to="/writing-room" className="text-gold-leaf hover:text-ink-brown transition-colors">
+                <Link to="/writing-room" className="text-primary hover:text-foreground transition-colors">
                     ← Return to the Library
                 </Link>
             </div>

@@ -22,14 +22,14 @@ const TraitDisplay: React.FC<TraitDisplayProps> = ({ label, value }) => {
             {/* 'flex-shrink-0' prevents the label from shrinking if the value is very long.
           'w-2/5' gives the label a consistent width (40% of the container).
           'text-right' aligns the text (and the colon) to the right edge of this column. */}
-            <span className="w-2/5 flex-shrink-0 pr-2 text-right font-semibold text-ink-brown/80">
+            <span className="w-2/5 flex-shrink-0 pr-2 text-right font-semibold text-muted-foreground">
         {label}:
       </span>
 
             {/* Column 2: The Value */}
             {/* 'w-3/5' gives the value the remaining width (60%).
           This ensures that the start of every value text aligns perfectly. */}
-            <span className="w-3/5 text-left text-ink-brown">
+            <span className="w-3/5 text-left text-foreground">
         {value}
       </span>
         </div>

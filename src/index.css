@@ -1,25 +1,96 @@
-/* ... (keep the @import and @tailwind directives at the top) ... */
+/* src/index.css */
+
 @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Apply the universal background to the entire body */
-body {
-    background-image: url('/parchment-bg.png');
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    text-shadow: 1px 1px 2px rgba(58, 45, 36, 0.1);
-    overflow-y: scroll;
-}
-#root {
-    background-color: transparent;
-}
-
 @layer base {
+    /* --- Define the CSS variables for both themes --- */
+    :root {
+        --background: 45 65% 95%;
+        --foreground: 20 22% 18%;
+        --card: 48 100% 98%;
+        --card-foreground: 20 22% 18%;
+        --popover: 48 100% 98%;
+        --popover-foreground: 20 22% 18%;
+        --primary: 40 62% 44%;
+        --primary-foreground: 45 65% 95%;
+        --secondary: 20 22% 18%;
+        --secondary-foreground: 45 65% 95%;
+        --muted: 45 30% 90%;
+        --muted-foreground: 20 15% 40%;
+        --accent: 40 62% 44%;
+        --accent-foreground: 45 65% 95%;
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 45 65% 95%;
+        --border: 20 15% 70%;
+        --input: 20 15% 80%;
+        --ring: 40 62% 44%;
+    }
+
+    .dark {
+        /* Background: A deep, dark navy-charcoal, like your image. */
+        --background: 220 18% 12%;
+
+        /* Foreground: A soft, luminous off-white, like glowing ink. Not pure white. */
+        --foreground: 220 15% 90%;
+
+        /* Card / Popover: A slightly lighter, less saturated navy-charcoal for contrast. */
+        --card: 220 18% 15%;
+        --card-foreground: 220 15% 90%;
+        --popover: 220 18% 15%;
+        --popover-foreground: 220 15% 90%;
+
+        /* Primary / Accent: A brighter, more magical gold that "glows" against the dark background. */
+        --primary: 40 70% 60%;
+        --primary-foreground: 20 22% 12%; /* Text on top of the gold buttons */
+
+        /* Secondary: The glowing text color for secondary buttons. */
+        --secondary: 220 15% 90%;
+        --secondary-foreground: 20 22% 12%;
+
+        /* Muted: A soft, shadowy blue-gray for less important text. */
+        --muted: 220 15% 30%;
+        --muted-foreground: 220 10% 60%;
+
+        /* Accent: Same as primary for a consistent feel. */
+        --accent: 40 70% 60%;
+        --accent-foreground: 20 22% 12%;
+
+        /* Destructive: A deep, desaturated crimson, like dried blood, not a bright red. */
+        --destructive: 0 50% 35%;
+        --destructive-foreground: 220 15% 90%;
+
+        /* Border / Input / Ring: Subtle, shadowy borders and a glowing gold for focus rings. */
+        --border: 220 15% 25%;
+        --input: 220 15% 20%;
+        --ring: 40 70% 60%;
+    }
+
+    /* --- Apply the base styles using the variables --- */
     body {
-        @apply font-serif text-ink-brown;
+        @apply bg-background text-foreground font-serif;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        text-shadow: 1px 1px 2px hsl(var(--foreground) / 0.1);
+        overflow-y: scroll;
+    }
+
+    /* --- Apply the correct background image based on the theme --- */
+    /* We target the <html> element, which is the ultimate root. */
+    html:not(.dark) body {
+        background-image: url('/parchment-bg.png');
+    }
+
+    html.dark body {
+        background-image: url('dark-parchment-bg.png');
+        text-shadow: 1px 1px 3px hsl(var(--foreground) / 0.2);
+    }
+
+    #root {
+        background-color: transparent;
     }
 }

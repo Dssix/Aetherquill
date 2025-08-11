@@ -17,15 +17,15 @@ const EmptyGalleryPlaceholder: React.FC<EmptyGalleryPlaceholderProps> = ({ icon,
           'opacity-5' makes it extremely faint, like a true watermark.
           'pointer-events-none' ensures it doesn't interfere with mouse clicks. */}
             <div className="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none -z-10">
-                <div className="w-48 h-48 text-ink-brown">
+                <div className="w-48 h-48 text-foreground">
                     {icon}
                 </div>
             </div>
 
             {/* The new, more poetic text. */}
             <div className="p-8">
-                <h2 className="text-2xl font-bold text-ink-brown">{title}</h2>
-                <p className="text-lg text-ink-brown/80 my-4 leading-relaxed italic">
+                <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+                <p className="text-lg text-muted-foreground my-4 leading-relaxed italic">
                     {message}
                 </p>
             </div>

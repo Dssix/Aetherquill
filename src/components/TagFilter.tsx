@@ -11,13 +11,13 @@ interface TagFilterProps {
 const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTags, onTagChange, onClear, className = '' }) => {
     return (
         // Apply the passed-in className to the root element.
-        <div className={`bg-parchment-highlight/60 p-4 rounded-lg border border-ink-brown/20 mb-8 ${className}`}>
+        <div className={`bg-card/60 p-4 rounded-lg border border-border mb-8 ${className}`}>
             <div className="flex justify-between items-center mb-3">
-                <h4 className="font-bold text-ink-brown">Filter Chronicle by Tag</h4>
+                <h4 className="font-bold text-foreground">Filter Chronicle by Tag</h4>
                 {selectedTags.length > 0 && (
                     <button
                         onClick={onClear}
-                        className="text-sm text-gold-leaf hover:text-ink-brown transition-colors duration-300"
+                        className="text-sm text-primary hover:text-foreground transition-colors duration-300"
                     >
                         Clear Filters
                     </button>
@@ -34,7 +34,7 @@ const TagFilter: React.FC<TagFilterProps> = ({ allTags, selectedTags, onTagChang
                                 px-3 py-1 rounded-full text-sm border transition-all duration-200
                                 ${isSelected
                                 ? 'bg-gold-leaf text-parchment-highlight border-gold-leaf shadow-md'
-                                : 'bg-transparent text-ink-brown/80 border-ink-brown/20 hover:border-ink-brown/50 hover:bg-ink-brown/5'
+                                : 'bg-transparent text-muted-foreground border-border hover:border-ink-brown/50 hover:bg-ink-brown/5'
                             }`
                             }
                         >

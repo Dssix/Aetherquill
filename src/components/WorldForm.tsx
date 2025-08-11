@@ -63,9 +63,9 @@ const WorldForm: React.FC<WorldFormProps> = ({ isOpen, onClose, onSave, worldToE
     return (
         <div className={`fixed inset-0 z-40 ... ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-            <div className={`absolute right-0 top-0 h-full w-full max-w-2xl bg-parchment ... ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className={`absolute right-0 top-0 h-full w-full max-w-2xl bg-background ... ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                 <form onSubmit={handleSubmit} className="p-6 h-full flex flex-col">
-                    <h2 className="text-3xl font-bold text-ink-brown font-serif mb-6">{worldToEdit ? 'Edit Realm' : 'Forge a New World'}</h2>
+                    <h2 className="text-3xl font-bold text-foreground font-serif mb-6">{worldToEdit ? 'Edit Realm' : 'Forge a New World'}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow overflow-y-auto pr-2">
                         {/* Column 1: Core Details */}
                         <div className="space-y-4">

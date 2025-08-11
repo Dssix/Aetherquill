@@ -12,10 +12,13 @@ const WorldIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-1
 
 // The NavigationCard component now correctly uses its 'icon' prop.
 const NavigationCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
-    <div className="bg-parchment-highlight/50 backdrop-blur-sm border border-ink-brown/20 rounded-lg p-6 text-center flex flex-col items-center gap-4 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-glow hover:border-gold-leaf/50 cursor-pointer h-full">
-        <div className="text-gold-leaf">{icon}</div>
-        <h3 className="text-2xl font-bold text-ink-brown">{title}</h3>
-        <p className="text-ink-brown/80">{description}</p>
+    // We replace the hardcoded colors with our new semantic classes.
+    <div className="bg-card/50 text-card-foreground backdrop-blur-sm border border-border rounded-lg p-6 text-center flex flex-col items-center gap-4 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-glow hover:border-accent/50 cursor-pointer h-full">
+        {/* The icon now uses the 'accent' color for that golden feel in both themes. */}
+        <div className="text-primary">{icon}</div>
+        {/* The title and description now use the correct foreground colors. */}
+        <h3 className="text-2xl font-bold text-foreground">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
     </div>
 );
 
@@ -31,8 +34,8 @@ const ProjectPage: React.FC = () => {
     return (
         <div className="w-full max-w-6xl mx-auto p-4 sm:p-8 flex-grow flex flex-col justify-center">
             <header className="text-center mb-12 animate-fade-in-down">
-                <h1 className="text-5xl font-bold text-ink-brown">{project.name}</h1>
-                <p className="text-lg text-ink-brown/80 italic mt-2">
+                <h1 className="text-5xl font-bold text-foreground">{project.name}</h1>
+                <p className="text-lg text-muted-foreground italic mt-2">
                     A chronicle by {currentUser}
                 </p>
             </header>
