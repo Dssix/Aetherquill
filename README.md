@@ -6,30 +6,32 @@
 
 ### 📖 About the Scriptorium
 
-Welcome, fellow scribe. Aetherquill is a local-first, browser-based application designed for novelists and world-builders. It is a private, immersive sanctuary for your stories, with no cloud servers, no subscriptions, and no distractions. Forged with a vintage parchment aesthetic, it aims to evoke the feeling of working in a candlelit chamber, crafting your lore upon an eternal scroll.
+Welcome, fellow scribe. Aetherquill is a **local-first, browser-based application** designed for novelists and world-builders. It is a private, immersive sanctuary for your stories, with no cloud servers, no subscriptions, and no distractions. Forged with a vintage parchment aesthetic, it aims to evoke the feeling of working in a candlelit chamber, crafting your lore upon an eternal scroll.
 
 The core philosophy of Aetherquill is the **"Web of Echoes"**—the idea that every character, world, event, and piece of writing is interconnected. This tool is designed not just to store your notes, but to help you discover the hidden threads that bind them together.
 
 ### ✨ Features & Capabilities
 
 *   **🛡️ Multi-Project Sanctum:** Aetherquill is your personal library. Create and manage multiple, distinct projects or "chronicles," each with its own isolated collection of lore. A simple, name-based login system keeps your work private and organized.
-*   **📜 Dynamic, Era-Based Timeline:** Chronicle the history of your world with a fully interactive timeline. Create custom Eras with defined date ranges, and watch as your events automatically sort themselves into the correct historical period.
-*   **🧝 Deep Character Creation:** Forge the souls of your story with a powerful character creator. Define core traits and add your own **custom, reorderable fields** to track anything you can imagine, from "Eye Color" to "Greatest Fear."
-*   **🌍 World-Building Atlas:** Create and manage the realms, cities, and regions of your saga.
+*   **📜 Custom, Narrative-Driven Timeline:** Chronicle the history of your world with a fully interactive timeline built for storytellers. Create custom **Eras** with their own names and descriptions, and manually order them to fit your narrative. Events are defined with poetic, relative dates (e.g., "15th Day of the Sun's Height") and can be **dragged and dropped** to perfect their chronological flow.
+*   **🧝 Deep Character Creation:** Forge the souls of your story with a powerful character creator. Define core traits like species, and add your own **custom, reorderable fields** to track anything you can imagine, from "Eye Color" to "Greatest Fear."
+*   **🌍 World-Building Atlas:** Create and manage the realms, cities, and regions of your saga, each with its own detailed description and attributes.
 *   **✍️ The Heart's Library:** A dedicated writing room featuring a beautiful **Markdown editor with a live side-by-side preview**. Write your lore, scenes, or notes and see them beautifully formatted as you type.
 *   **🕸️ The Web of Echoes:** The true magic of Aetherquill. Every entity can be linked to any other within a project. A **Character** can inhabit a **World** and be mentioned in multiple **Writings**. A **Timeline Event** can list the **Characters** who participated. A **Writing** can reference the **Events** it describes.
-*   **🔮 The Oracle's Mirror (Global Search):** A powerful, project-scoped search bar is always at your command. Instantly find any character, world, event, or writing by its name, tags, or content.
-*   **🧭 Immersive Detail Pages:** Dive deep into your lore with dedicated, read-only "viewer" pages for your Characters, Worlds, and Writings, allowing for focused contemplation of your creations.
-*   **🧠 The Eternal Scroll:** All your work—every user, every project, every character, world, event, and manuscript—is automatically saved to your browser's `localStorage`. Your scriptorium will be exactly as you left it every time you return.
+*   **🔮 The Oracle's Mirror (Global Search):** A powerful, project-scoped search bar is always at your command. Instantly find any character, world, event, or writing by its name, tags, or content using fuzzy search.
+*   **🧭 Immersive Detail Pages & Navigation:** Dive deep into your lore with dedicated, read-only "viewer" pages for your Characters, Worlds, and Writings. A dynamic **breadcrumb trail** in the header ensures you never lose your place in your own creation.
+*   **🎨 Dual-Theme Atmosphere:** Switch between a classic, sun-bleached **Light Mode** and a magical, moonlit **Dark Mode** at the click of a button. The entire UI transforms, with the theme system built on a semantic color palette for perfect consistency.
+*   **🧠 The Eternal Scroll:** All your work—every user, every project, every entity, and your chosen theme—is automatically saved to your browser's `localStorage`. Your scriptorium will be exactly as you left it every time you return.
 
 ### 🛠️ The Craftsman's Tools (Tech Stack)
 
 *   **Frontend:** React, TypeScript, React Router
 *   **Build Tool:** Vite
-*   **State Management:** Zustand (A single, unified store with `subscribe` for persistence)
-*   **Styling:** TailwindCSS (with a custom vintage theme and the Typography plugin)
+*   **State Management:** Zustand (A single, unified store with automatic persistence)
+*   **Styling:** TailwindCSS (with a custom semantic, theme-aware color system and the Typography plugin)
+*   **Drag & Drop:** `@dnd-kit/core` & `@dnd-kit/sortable`
 *   **Searching:** Fuse.js (for lightweight fuzzy searching)
-*   **Drag & Drop (Planned):** `@dnd-kit` for future UI enhancements.
+*   **Markdown:** `react-markdown`
 
 ### 📜 Getting Started: Lighting the First Candle
 
@@ -65,9 +67,9 @@ The project is organized to be clean and scalable:
     aetherquill/
     ├── public/ # Static assets (fonts, background textures)
     └── src/
-    ├── components/ # Reusable components (Layout, Panels, UI elements)
+    ├── components/ # Reusable components (Layout, Panels, UI elements, DND)
     ├── dataModels/ # Core data blueprints (UserData, ProjectData)
-    ├── hooks/ # Reusable React hooks (e.g., useDebounce, useBreadcrumbs)
+    ├── hooks/ # Reusable React hooks (useDebounce, useBreadcrumbs, useThemeManager)
     ├── pages/ # Top-level components for each main route
     ├── stores/ # The single, unified Zustand store (useAppStore)
     ├── types/ # Entity-specific TypeScript interfaces (Character, World, etc.)
@@ -75,11 +77,9 @@ The project is organized to be clean and scalable:
 
 ### 🔮 The Path Forward (Future Vision)
 
-The foundation is strong, but the work of a master craftsman is never truly done. The next enchantments to be woven are focused on polishing the scribe's experience:
+Aetherquill Version 1.0 is a complete and polished local-first application. The next grand milestone is **"The Cloud Sanctum."**
 
-*   **✨ The Living Panels:** Elevate the character creation experience by replacing the simple up/down arrows for trait reordering with a fluid **drag-and-drop** interface.
-*   **🎨 Dark Mode:** A "Midnight Parchment" theme for scribes who work best by moonlight, allowing you to switch between a light and dark version of the vintage aesthetic.
-*   **☁️ The Cloud Sanctum:** Prepare the application for an optional cloud backend (like Firebase/Firestore) to allow for data synchronization across multiple devices.
+*   **☁️ Backend Integration:** The current architecture, with its user-scoped data model and centralized store actions, is designed for a seamless transition. The next phase of development will focus on building a backend (e.g., with Node.js/NestJS or Java/Spring Boot) and replacing the `localStorage` utilities with asynchronous API calls to allow for data synchronization across multiple devices.
 
 ---
 

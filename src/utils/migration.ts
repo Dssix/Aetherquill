@@ -26,11 +26,11 @@ export const runLegacyMigration = () => {
     const defaultProject: ProjectData = {
         projectId: DEFAULT_PROJECT_ID,
         name: DEFAULT_PROJECT_NAME,
+        eras: [],
+        timeline: legacyTimeline,
         characters: legacyCharacters,
         worlds: legacyWorlds,
         writings: legacyWritings,
-        timeline: legacyTimeline,
-        eras: [],
     };
 
     // --- Step 3: Assemble the ProjectData into our new UserData structure ---

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import toast from 'react-hot-toast';
 import { type UserData, type ProjectData } from '../dataModels/userData';
 import { saveUserData } from '../utils/storage';
 import { type Character } from '../types/character';
@@ -36,14 +37,16 @@ interface AppState {
     deleteCharacter: (characterId: string) => void;
 
     // Timeline Action
-    addTimelineEvent: (eventData: Omit<TimelineEvent, 'id'>) => void;
-    updateTimelineEvent: (eventId: string, eventData: Omit<TimelineEvent, 'id'>) => void;
+    addTimelineEvent: (eventData: Omit<TimelineEvent, 'id' | 'order'>) => void;
+    updateTimelineEvent: (eventId: string, eventData: Partial<Omit<TimelineEvent, 'id'>>) => void;
     deleteTimelineEvent: (eventId: string) => void;
 
     // Era Action
-    addEra: (eraData: Omit<Era, 'id'>) => void;
-    updateEra: (eraId: string, eraData: Omit<Era, 'id'>) => void;
+    addEra: (eraData: Omit<Era, 'id' | 'order'>) => void;
+    updateEra: (eraId: string, eraData: Partial<Omit<Era, 'id'>>) => void;
     deleteEra: (eraId: string) => void;
+    reorderEras: (eraIds: string[]) => void;
+    reorderEventsInEra: (eraId: string, eventIds: string[]) => void;
 
     // World Action
     addWorld: (worldData: Omit<World, 'id'>) => void;
@@ -128,6 +131,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             // Return the new state.
             return { userData: newUserData };
         });
+        toast.success(`Chronicle "${projectData.name}" created!`);
     },
     updateProject: (projectId, newName) => {
         set(state => {
@@ -140,11 +144,12 @@ export const useAppStore = create<AppState>((set, get) => ({
             if (newUserData.projects[projectId]) {
                 newUserData.projects[projectId].name = newName;
             }
-
             return { userData: newUserData };
         });
+        toast.success(`Chronicle renamed to "${newName}".`);
     },
     deleteProject: (projectId) => {
+        const projectName = get().userData?.projects[projectId]?.name;
         set(state => {
             if (!state.currentUser || !state.userData) return state;
 
@@ -161,6 +166,9 @@ export const useAppStore = create<AppState>((set, get) => ({
 
             return { userData: newUserData, currentProjectId: newCurrentProjectId };
         });
+        if (projectName) {
+            toast.success(`Chronicle "${projectName}" consigned to the void.`);
+        }
     },
 
 
@@ -177,6 +185,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             newUserData.projects[currentProjectId].characters.push(newCharacter);
             return { userData: newUserData };
         });
+        toast.success(`Soul "${characterData.name}" has been forged.`);
     },
     updateCharacter: (characterId, characterData) => {
         const { currentUser, currentProjectId } = get();
@@ -193,10 +202,13 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
             return { userData: newUserData };
         });
+        toast.success(`Soul "${characterData.name}" updated.`);
     },
     deleteCharacter: (characterId) => {
         const { currentUser, currentProjectId } = get();
         if (!currentUser || !currentProjectId) return;
+
+        const charName = get().userData?.projects[currentProjectId]?.characters.find(c => c.id === characterId)?.name;
 
         set(state => {
             if (!state.userData) return state;
@@ -205,48 +217,54 @@ export const useAppStore = create<AppState>((set, get) => ({
                 newUserData.projects[currentProjectId].characters.filter((c: Character) => c.id !== characterId);
             return { userData: newUserData };
         });
+        if (charName) {
+            toast.success(`Soul "${charName}" has been banished.`);
+        }
     },
 
 
     // TimeLine Actions
     addTimelineEvent: (eventData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
-        const newEvent: TimelineEvent = { id: `evt_${Date.now()}`, ...eventData };
-
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
+
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].timeline.push(newEvent);
+            const project = newUserData.projects[state.currentProjectId];
+
+            // Automatically set the order to be the last in its era
+            const eventsInEra = project.timeline.filter((e: TimelineEvent) => e.eraId === eventData.eraId);
+            const newOrder = eventsInEra.length > 0 ? Math.max(...eventsInEra.map((e: TimelineEvent) => e.order)) + 1 : 1;
+
+            const newEvent: TimelineEvent = { id: `evt_${Date.now()}`, ...eventData, order: newOrder };
+            project.timeline.push(newEvent);
+
+            toast.success(`Event "${newEvent.title}" added to the chronicle.`);
             return { userData: newUserData };
         });
     },
     updateTimelineEvent: (eventId, eventData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectTimeline = newUserData.projects[currentProjectId].timeline;
-            const eventIndex = projectTimeline.findIndex((e: TimelineEvent) => e.id === eventId);
+            const project = newUserData.projects[state.currentProjectId];
+            const eventIndex = project.timeline.findIndex((e: TimelineEvent) => e.id === eventId);
 
             if (eventIndex !== -1) {
-                projectTimeline[eventIndex] = { ...projectTimeline[eventIndex], ...eventData };
+                project.timeline[eventIndex] = { ...project.timeline[eventIndex], ...eventData };
+                toast.success(`Event "${project.timeline[eventIndex].title}" updated.`);
             }
             return { userData: newUserData };
         });
     },
     deleteTimelineEvent: (eventId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
+        const eventTitle = get().userData?.projects[get().currentProjectId!]?.timeline.find(e => e.id === eventId)?.title;
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].timeline =
-                newUserData.projects[currentProjectId].timeline.filter((e: TimelineEvent) => e.id !== eventId);
+            const project = newUserData.projects[state.currentProjectId];
+            project.timeline = project.timeline.filter((e: TimelineEvent) => e.id !== eventId);
+
+            if (eventTitle) toast.success(`Event "${eventTitle}" erased from the chronicle.`);
             return { userData: newUserData };
         });
     },
@@ -254,43 +272,80 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Era Action
     addEra: (eraData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
-        const newEra: Era = { id: `era_${Date.now()}`, ...eraData };
-
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].eras.push(newEra);
+            const project = newUserData.projects[state.currentProjectId];
+
+            // Automatically set the order to be the last era
+            const newOrder = project.eras.length > 0 ? Math.max(...project.eras.map((e: Era) => e.order)) + 1 : 1;
+            const newEra: Era = { id: `era_${Date.now()}`, ...eraData, order: newOrder };
+            project.eras.push(newEra);
+
+            toast.success(`The "${newEra.name}" has begun.`);
             return { userData: newUserData };
         });
     },
     updateEra: (eraId, eraData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectEras = newUserData.projects[currentProjectId].eras;
-            const eraIndex = projectEras.findIndex((e: Era) => e.id === eraId);
+            const project = newUserData.projects[state.currentProjectId];
+            const eraIndex = project.eras.findIndex((e: Era) => e.id === eraId);
 
             if (eraIndex !== -1) {
-                projectEras[eraIndex] = { ...projectEras[eraIndex], ...eraData };
+                project.eras[eraIndex] = { ...project.eras[eraIndex], ...eraData };
+                toast.success(`Era "${project.eras[eraIndex].name}" has been updated.`);
             }
             return { userData: newUserData };
         });
     },
     deleteEra: (eraId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
-
+        const eraName = get().userData?.projects[get().currentProjectId!]?.eras.find(e => e.id === eraId)?.name;
         set(state => {
-            if (!state.userData) return state;
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
             const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].eras =
-                newUserData.projects[currentProjectId].eras.filter((e: Era) => e.id !== eraId);
+            const project = newUserData.projects[state.currentProjectId];
+
+            // Also delete all events associated with this era
+            project.timeline = project.timeline.filter((e: TimelineEvent) => e.eraId !== eraId);
+            project.eras = project.eras.filter((e: Era) => e.id !== eraId);
+
+            if (eraName) toast.success(`The "${eraName}" and all its events have ended.`);
+            return { userData: newUserData };
+        });
+    },
+    reorderEras: (eraIds) => {
+        set(state => {
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
+            const newUserData = JSON.parse(JSON.stringify(state.userData));
+            const project = newUserData.projects[state.currentProjectId];
+            // Create a map for quick lookups
+            const eraMap = new Map(project.eras.map((e: Era) => [e.id, e]));
+            // Recreate the eras array in the new order
+            project.eras = eraIds.map(id => eraMap.get(id)!).filter(Boolean).map((era, index) => ({...era, order: index + 1}));
+
+            toast.success("Eras have been reordered.");
+            return { userData: newUserData };
+        });
+    },
+    reorderEventsInEra: (eraId, eventIds) => {
+        set(state => {
+            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
+            const newUserData = JSON.parse(JSON.stringify(state.userData));
+            const project = newUserData.projects[state.currentProjectId];
+
+            // Create a map of the events being reordered for quick lookups
+            const eventMap = new Map(project.timeline.filter((e: TimelineEvent) => e.eraId === eraId).map((e: TimelineEvent) => [e.id, e]));
+            const reorderedEvents = eventIds.map(id => eventMap.get(id)!).filter(Boolean).map((event, index) => ({...event, order: index + 1}));
+
+            // Get all other events that were not part of this reordering
+            const otherEvents = project.timeline.filter((e: TimelineEvent) => e.eraId !== eraId);
+
+            // Combine them back into the main timeline array
+            project.timeline = [...otherEvents, ...reorderedEvents];
+
+            toast.success("Events have been reordered.");
             return { userData: newUserData };
         });
     },
@@ -309,6 +364,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             newUserData.projects[currentProjectId].worlds.push(newWorld);
             return { userData: newUserData };
         });
+        toast.success(`Realm "${worldData.name}" has been forged.`);
     },
     updateWorld: (worldId, worldData) => {
         const { currentUser, currentProjectId } = get();
@@ -325,10 +381,13 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
             return { userData: newUserData };
         });
+        toast.success(`Realm "${worldData.name}" has been updated.`);
     },
     deleteWorld: (worldId) => {
         const { currentUser, currentProjectId } = get();
         if (!currentUser || !currentProjectId) return;
+
+        const worldName = get().userData?.projects[currentProjectId]?.worlds.find(w => w.id === worldId)?.name;
 
         set(state => {
             if (!state.userData) return state;
@@ -337,6 +396,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 newUserData.projects[currentProjectId].worlds.filter((w: World) => w.id !== worldId);
             return { userData: newUserData };
         });
+        if (worldName) {
+            toast.success(`Realm "${worldName}" has been unmade.`);
+        }
     },
 
 
@@ -359,6 +421,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             newUserData.projects[currentProjectId].writings.unshift(newWriting); // Add to top
             return { userData: newUserData };
         });
+        toast.success(`Manuscript "${writingData.title}" has been archived.`);
     },
     updateWriting: (writingId, writingData) => {
         const { currentUser, currentProjectId } = get();
@@ -379,10 +442,13 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
             return { userData: newUserData };
         });
+        toast.success(`Manuscript "${writingData.title}" has been updated.`);
     },
     deleteWriting: (writingId) => {
         const { currentUser, currentProjectId } = get();
         if (!currentUser || !currentProjectId) return;
+
+        const writingTitle = get().userData?.projects[currentProjectId]?.writings.find(w => w.id === writingId)?.title;
 
         set(state => {
             if (!state.userData) return state;
@@ -391,6 +457,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 newUserData.projects[currentProjectId].writings.filter((w: WritingEntry) => w.id !== writingId);
             return { userData: newUserData };
         });
+        if (writingTitle) {
+            toast.success(`Manuscript "${writingTitle}" consigned to the flames.`);
+        }
     },
 
 

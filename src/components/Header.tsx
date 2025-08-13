@@ -93,7 +93,7 @@ const Header: React.FC = () => {
                 <div className="flex items-center gap-4">
                     {/* --- The Intelligent Navigation --- */}
                     {/* The main navigation links ONLY appear if a project is currently selected. */}
-                    {currentProjectId && (
+                    {currentProjectId && location.pathname !== '/' && (
                         <nav className="hidden md:flex items-center gap-6 font-serif">
                             <NavLink
                                 to="/project"

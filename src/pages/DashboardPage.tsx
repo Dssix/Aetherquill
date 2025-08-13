@@ -96,11 +96,11 @@ const DashboardPage: React.FC = () => {
         const newProject: ProjectData = {
             projectId: `proj_${Date.now()}`,
             name,
+            eras: [],
+            timeline: [],
             characters: [],
             worlds: [],
             writings: [],
-            timeline: [],
-            eras: [],
         };
 
         addProject(newProject);

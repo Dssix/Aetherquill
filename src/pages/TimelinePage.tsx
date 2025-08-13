@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { type TimelineEvent } from '../data/timelineEvents';
 import {type Era} from '../data/eraManager'; // We'll need to refactor Eras next
 import { useAppStore } from '../stores/useAppStore';
@@ -12,14 +14,9 @@ import Button from '../components/ui/Button';
 
 const TimelinePage: React.FC = () => {
     const {
-        userData,
-        currentProjectId,
-        addTimelineEvent,
-        updateTimelineEvent,
-        deleteTimelineEvent,
-        addEra,
-        updateEra,
-        // deleteEra // We will add a delete button for eras later
+        userData, currentProjectId,
+        addTimelineEvent, updateTimelineEvent, deleteTimelineEvent,
+        addEra, updateEra, deleteEra, reorderEras, reorderEventsInEra
     } = useAppStore();
 
 
@@ -50,31 +47,24 @@ const TimelinePage: React.FC = () => {
     }, [events, selectedTags]);
 
     const sortedErasWithEvents = useMemo(() => {
-        const sortedEras = [...eras].sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+        // 1. Sort the Eras themselves based on their 'order' property.
+        const sortedEras = [...eras].sort((a, b) => a.order - b.order);
 
+        // 2. Group all filtered events by their mandatory 'eraId'.
         const eventsByEra = filteredEvents.reduce((acc, event) => {
-            const key = event.eraId || 'no-era'; // Use 'no-era' for unassigned events.
+            const key = event.eraId;
             if (!acc[key]) { acc[key] = []; }
             acc[key].push(event);
             return acc;
         }, {} as Record<string, TimelineEvent[]>);
 
-        const result = sortedEras.map(era => ({
+        // 3. For each sorted Era, get its events and sort THEM by their own 'order' property.
+        return sortedEras.map(era => ({
             ...era,
-            events: eventsByEra[era.id] || [] // Default to an empty array if an era has no events.
+            events: (eventsByEra[era.id] || []).sort((a, b) => a.order - b.order)
         }));
 
-        if (eventsByEra['no-era']) {
-            result.push({
-                id: 'no-era',
-                name: 'Unassigned Events',
-                startDate: '',
-                endDate: '',
-                events: eventsByEra['no-era']
-            });
-        }
-        return result;
-    }, [eras, filteredEvents]); // This hook now depends on both 'eras' and 'filteredEvents'.
+    }, [eras, filteredEvents]);
 
     useEffect(() => {
         if (activeEventIdentifier) {
@@ -85,29 +75,61 @@ const TimelinePage: React.FC = () => {
         }
     }, [filteredEvents, activeEventIdentifier]);
 
-    // Helper Function: Finds the correct era for a given event date.
-    const findEraIdForDate = (eventDate: string, allEras: Era[]): string | null => {
-        if (!eventDate) return null;
-        const date = new Date(eventDate);
-        // Find the first era where the event date falls within its range.
-        const matchingEra = allEras.find(era => {
-            const start = new Date(era.startDate);
-            const end = new Date(era.endDate);
-            return date >= start && date <= end;
-        });
-        return matchingEra ? matchingEra.id : null;
+    // Sensor for Drag-and-Drop
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
+
+    // handle drag for era
+    const handleEraDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            const oldIndex = sortedErasWithEvents.findIndex(era => era.id === active.id);
+            const newIndex = sortedErasWithEvents.findIndex(era => era.id === over.id);
+
+            // Use the arrayMove utility to get the new array
+            const reorderedErasArray = arrayMove(sortedErasWithEvents, oldIndex, newIndex);
+            // Extract just the IDs in the new order
+            const reorderedEraIds = reorderedErasArray.map(era => era.id);
+
+            // Call the store action to persist the new order
+            reorderEras(reorderedEraIds);
+        }
     };
 
-    const handleAddEvent = (data: Omit<TimelineEvent, 'id' | 'eraId'>) => {
-        const eraId = findEraIdForDate(data.date, eras);
-        addTimelineEvent({ ...data, eraId }); // Call new store action
+
+    // handle drag for events
+    const handleEventDragEnd = (event: DragEndEvent, eraId: string) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            // Find the events for the current era to get their current order
+            const currentEra = sortedErasWithEvents.find(e => e.id === eraId);
+            if (!currentEra) return;
+
+            const oldIndex = currentEra.events.findIndex(e => e.id === active.id);
+            const newIndex = currentEra.events.findIndex(e => e.id === over.id);
+
+            const reorderedEventsArray = arrayMove(currentEra.events, oldIndex, newIndex);
+            const reorderedEventIds = reorderedEventsArray.map(e => e.id);
+
+            // Call the store action to persist the new order for this specific era
+            reorderEventsInEra(eraId, reorderedEventIds);
+        }
+    };
+
+    const handleAddEvent = (data: Omit<TimelineEvent, 'id' | 'order'>) => {
+        // The 'data' object from the form now includes the correct 'eraId'.
+        // The store action will automatically handle setting the 'order'.
+        addTimelineEvent(data);
         setIsEventFormOpen(false);
     };
-
-    const handleUpdateEvent = (data: Omit<TimelineEvent, 'id' | 'eraId'>) => {
+    const handleUpdateEvent = (data: Omit<TimelineEvent, 'id' | 'order'>) => {
         if (!editingEvent) return;
-        const eraId = findEraIdForDate(data.date, eras);
-        updateTimelineEvent(editingEvent.id, { ...data, eraId }); // Call new store action
+        // The 'data' from the form has all the updated info.
+        updateTimelineEvent(editingEvent.id, data);
         setEditingEvent(null);
         setIsEventFormOpen(false);
     };
@@ -119,17 +141,25 @@ const TimelinePage: React.FC = () => {
     };
 
     // Era Handlers
-    const handleAddEra = (data: Omit<Era, 'id'>) => {
-        addEra(data); // Call new store action
+    const handleAddEra = (data: Omit<Era, 'id' | 'order'>) => {
+        // The handler now takes the simple data from the form
+        // and adds the 'order' property itself before sending it to the store.
+        // (The store will still assign the final 'id').
+        addEra(data);
         setIsEraFormOpen(false);
     };
-
-    const handleUpdateEra = (data: Omit<Era, 'id'>) => {
+    const handleUpdateEra = (data: Omit<Era, 'id' | 'order'>) => {
         if (!editingEra) return;
-        updateEra(editingEra.id, data); // Call new store action
+        // We now only pass the data that has changed. The store will handle merging it.
+        updateEra(editingEra.id, data);
         setEditingEra(null);
         setIsEraFormOpen(false);
     };
+    const handleDeleteEra = (era: Era) => {
+        if (window.confirm(`Delete the era "${era.name}" and all its events? This cannot be undone.`)) {
+            deleteEra(era.id);
+        }
+    }
 
     const handleOpenEventFormForEdit = (event: TimelineEvent) => { setEditingEvent(event); setIsEventFormOpen(true); };
     const handleOpenEventFormForAdd = () => { setEditingEvent(null); setIsEventFormOpen(true); };
@@ -177,48 +207,74 @@ const TimelinePage: React.FC = () => {
                 <div className="mt-12">
                     {/* --- THIS IS THE RESTORED MASTER BLUEPRINT --- */}
                     <div
-                        // The 'gap-x' now reads its value directly from our CSS variable.
                         className="grid grid-cols-[auto_1fr] gap-x-[var(--timeline-gap)]"
-
                         style={{
                             '--timeline-gap': '1.46rem',      // The space between the line and the text content (e.g., 24px)
-                            '--timeline-dot-offset': '1.49rem', // How far the dot should move left to land on the line
+                            '--timeline-dot-offset': '3.25rem', // How far the dot should move left to land on the line
                         } as React.CSSProperties}
                     >
-                        {/* Column 1: The Master Spine (no changes needed here) */}
+                        {/* Column 1: The Master Spine  */}
                         <div className="w-0.5 h-full opacity-0 animate-reveal-up bg-muted mt-16"></div>
 
-                        {/* Column 2: The Content Flow (no changes needed here) */}
-                        <div className="space-y-8">
-                            {sortedErasWithEvents.length > 0 ? (
-                                sortedErasWithEvents.map((eraWithEvents, index) => (
-                                    // ... the rest of your rendering logic remains exactly the same ...
-                                    eraWithEvents.events.length > 0 && (
-                                        <div key={eraWithEvents.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${500 + index * 200}ms` }}>
-                                            <EraDivider era={eraWithEvents} onEdit={() => handleOpenEraFormForEdit(eraWithEvents)} />
-                                            <div className="space-y-8 mt-6">
-                                                {eraWithEvents.events.map(event => (
-                                                    <TimelineNode
-                                                        key={event.id}
-                                                        event={event}
-                                                        isActive={activeEventIdentifier === event.id}
-                                                        onClick={() => handleNodeClick(event.id)}
-                                                        onEdit={() => handleOpenEventFormForEdit(event)}
-                                                        onDelete={() => handleDeleteEvent(event.id)}
-                                                        characters={characters}
-                                                        writings={writings}
+                        {/* Column 2: The Content Flow  */}
+                        <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleEraDragEnd}
+                        >
+                            <SortableContext
+                                // Provide the IDs of the eras that can be sorted
+                                items={sortedErasWithEvents.map(era => era.id)}
+                                strategy={verticalListSortingStrategy}
+                            >
+                                <div className="space-y-8">
+                                    {sortedErasWithEvents.length > 0 ? (
+                                        sortedErasWithEvents.map((eraWithEvents, index) => (
+                                            // ... the rest of your rendering logic remains exactly the same ...
+                                            eraWithEvents.events.length > 0 && (
+                                                <div key={eraWithEvents.id} className="opacity-0 animate-fade-in-up" style={{ animationDelay: `${500 + index * 200}ms` }}>
+                                                    <EraDivider
+                                                        era={eraWithEvents}
+                                                        onEdit={() => handleOpenEraFormForEdit(eraWithEvents)}
+                                                        onDelete={() => handleDeleteEra(eraWithEvents)}
                                                     />
-                                                ))}
-                                            </div>
+                                                    <DndContext
+                                                        sensors={sensors}
+                                                        collisionDetection={closestCenter}
+                                                        // We pass the eraId to the handler to know which list we're sorting
+                                                        onDragEnd={(e) => handleEventDragEnd(e, eraWithEvents.id)}
+                                                    >
+                                                        <SortableContext
+                                                            items={eraWithEvents.events.map(e => e.id)}
+                                                            strategy={verticalListSortingStrategy}
+                                                        >
+                                                            <div className="space-y-8 mt-6">
+                                                                {eraWithEvents.events.map(event => (
+                                                                    <TimelineNode
+                                                                        key={event.id}
+                                                                        event={event}
+                                                                        isActive={activeEventIdentifier === event.id}
+                                                                        onClick={() => handleNodeClick(event.id)}
+                                                                        onEdit={() => handleOpenEventFormForEdit(event)}
+                                                                        onDelete={() => handleDeleteEvent(event.id)}
+                                                                        characters={characters}
+                                                                        writings={writings}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        </SortableContext>
+                                                    </DndContext>
+                                                </div>
+                                            )
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-16 opacity-0 animate-fade-in-up" style={{animationDelay: '500ms'}}>
+                                            <p className="text-foreground/70">The chronicle is blank. Define thy first Era to begin.</p>
                                         </div>
-                                    )
-                                ))
-                            ) : (
-                                <div className="text-center py-16 opacity-0 animate-fade-in-up" style={{animationDelay: '500ms'}}>
-                                    <p className="text-foreground/70">No entries match thy filter...</p>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </SortableContext>
+                        </DndContext>
                     </div>
                 </div>
             </div>
@@ -228,9 +284,9 @@ const TimelinePage: React.FC = () => {
                     onClose={() => setIsEventFormOpen(false)}
                     onSubmit={editingEvent ? handleUpdateEvent : handleAddEvent}
                     initialData={editingEvent}
-                    // The EventForm correctly needs characters and writings for linking.
                     characters={characters}
                     writings={writings}
+                    eras={eras} // Pass the eras for the dropdown
                 />
             )}
             {isEraFormOpen && (

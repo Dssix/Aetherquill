@@ -59,7 +59,8 @@ export default {
         'reveal-up': 'fadeInUp 0.5s ease-out forwards',
       },
       boxShadow: {
-        'glow': '0 0 15px 5px rgba(180, 140, 44, 0.4)',
+          'glow': '0 0 15px 5px rgba(180, 140, 44, 0.4)',
+          'primary-glow': '0 0 15px 4px hsl(var(--primary) / 0.6)',
       },
 
       transitionProperty: {
