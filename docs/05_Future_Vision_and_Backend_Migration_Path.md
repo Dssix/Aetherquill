@@ -34,11 +34,35 @@ The migration will be a focused replacement of the application's "data layer," w
 
 ### **Step 1: Forge the Backend (The New Master Library)**
 
+### **Step 1a: Create the Server Workspace**
+
+The first step in forging the backend will be to create its dedicated workspace within our existing monorepo structure.
+
+1.  Create a new directory at `/packages/server`.
+2.  Navigate into that directory and initialize a new Node.js project (`npm init`).
+3.  Install NestJS and its dependencies as a dependency of this new `server` workspace.
+4.  Add new scripts to the root `package.json` to control the server, for example:
+    ```json
+    "scripts": {
+      "dev:client": "npm run dev --workspace=aetherquill-frontend",
+      "dev:server": "npm run start:dev --workspace=aetherquill-server",
+      "dev": "npm-run-all --parallel dev:client dev:server"
+    }
+    ```
+    *(Note: This would require installing a tool like `npm-run-all` to run both simultaneously).*
+
+This setup will allow for seamless, integrated development of both the frontend and backend from a single project root.
+
+### **Step 1b:**
+
 A backend server must be created. The recommended path is a **REST API** built with a robust, typed framework.
 
--   **Recommended Stacks:**
-    -   **Node.js with NestJS:** Offers the immense advantage of using TypeScript across the entire stack, allowing for shared types and a smoother development experience.
-    -   **Java with Spring Boot:** Offers enterprise-grade robustness, security, and powerful database tools (JPA/Hibernate), making it an excellent choice for a long-term, scalable project.
+-   **Chosen Technology:** The recommended and intended backend for Aetherquill is **Node.js with the NestJS framework**.
+
+-   **Architectural Rationale:** This choice provides the optimal balance of power, productivity, and harmony with our existing frontend.
+    -   **Unified Language:** It allows for the use of **TypeScript across the entire stack**. This is the single most significant advantage, as it eliminates the cognitive overhead of switching between languages.
+    -   **Shared Types:** Core data blueprints (e.g., `Character`, `World` interfaces) can be placed in a shared directory and imported by both the React frontend and the NestJS backend. This creates a single, unbreakable source of truth for our data models, drastically reducing the potential for bugs.
+    -   **Structured Design:** NestJS is a highly-structured, "opinionated" framework. It brings the architectural discipline of backend frameworks like Spring Boot (using Modules, Controllers, Services, and Dependency Injection) to the Node.js ecosystem, ensuring the backend will be as clean, scalable, and maintainable as our frontend.
 -   **Database:** A NoSQL database like **Firestore** or **MongoDB** is a natural fit, as their document-based structure perfectly mirrors our existing `UserData` -> `ProjectData` JSON object model.
 -   **Authentication:** The backend will be responsible for true user authentication (e.g., email/password or OAuth). Upon successful login, it will issue a **JSON Web Token (JWT)** to the frontend.
 

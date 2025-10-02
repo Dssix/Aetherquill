@@ -74,3 +74,18 @@ Aetherquill features a complete, application-wide light/dark mode system built o
 -   **`useAppStore.ts`:** The store holds the current `theme` ('light' or 'dark') and a `toggleTheme` action. The user's preference is persisted to `localStorage`.
 -   **`useThemeManager.ts`:** A custom hook runs in `App.tsx`. It subscribes to the `theme` state in the store and is responsible for adding or removing the `.dark` class from the root `<html>` element.
 -   **Component Implementation:** All reusable components (`Card`, `Button`, etc.) and pages are styled using only the semantic Tailwind classes (e.g., `bg-card`, `text-foreground`). They **do not** use `dark:` prefixes, making them automatically theme-aware.
+---
+
+## 📦 The Grand Scriptorium: Monorepo Architecture
+
+Aetherquill is structured as a **monorepo** using NPM Workspaces. This means the entire project—both the frontend client and the future backend server—lives within a single top-level repository. This approach was chosen for several key benefits:
+
+-   **Unified Workspace:** The entire application can be managed from a single IntelliJ IDEA project and a single terminal, streamlining the development workflow.
+-   **Shared Code:** Most importantly, this structure allows for the easy sharing of code between different parts of the application. A dedicated `packages/common` directory can be created to hold shared TypeScript types (e.g., `Character`, `World`), ensuring that the frontend and backend are always speaking the exact same data language.
+-   **Simplified Dependency Management:** A single `npm install` command from the root directory installs all dependencies for all workspaces.
+
+The project is organized as follows:
+
+-   `/` (Root): Contains the master `package.json` that defines the workspaces. All development commands (e.g., `npm run dev`) should be run from here.
+-   `/packages/client/`: Contains the entire React + Vite frontend application (The **View**).
+-   `/packages/server/`: A reserved space for the future NestJS backend application (The **Model** and **Controller**).

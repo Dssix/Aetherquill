@@ -1,0 +1,84 @@
+import React from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { useAppStore } from '../stores/useAppStore.ts';
+
+// --- Step 1: Define the SVG Icon components ---
+// We define these directly in the file for simplicity, just as we did on the original LandingPage.
+const QuillIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 20l10 -10l-1.5 -1.5l-10 10v1.5h1.5z" /><path d="M13.5 6.5l1.5 -1.5l-10 10v1.5h1.5z" /><path d="M18.5 1.5l-1.5 1.5" /><path d="M15 8l-1.5 1.5" /></svg> );
+const CrestIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 21l-8 -4.5v-9l8 -4.5l8 4.5v9z" /><path d="M12 12l8 -4.5" /><path d="M12 12v9" /><path d="M12 12l-8 -4.5" /></svg> );
+const BookIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0" /><line x1="3" y1="6" x2="3" y2="19" /><line x1="12" y1="6" x2="12" y2="19" /><line x1="21" y1="6" x2="21" y2="19" /></svg> );
+const WorldIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9" /><line x1="3.6" y1="9" x2="20.4" y2="9" /><line x1="3.6" y1="15" x2="20.4" y2="15" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></svg> );
+const CatalogueIcon = () => ( <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>);
+
+// The NavigationCard component now correctly uses its 'icon' prop.
+const NavigationCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
+    // We replace the hardcoded colors with our new semantic classes.
+    <div className="bg-card/50 text-card-foreground backdrop-blur-sm border border-border rounded-lg p-6 text-center flex flex-col items-center gap-4 transform transition-all duration-300 hover:-translate-y-2 hover:shadow-glow hover:border-accent/50 cursor-pointer h-full">
+        {/* The icon now uses the 'accent' color for that golden feel in both themes. */}
+        <div className="text-primary">{icon}</div>
+        {/* The title and description now use the correct foreground colors. */}
+        <h3 className="text-2xl font-bold text-foreground">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+    </div>
+);
+
+const ProjectPage: React.FC = () => {
+    const { currentUser, userData, currentProjectId } = useAppStore();
+
+    if (!currentProjectId || !userData || !userData.projects[currentProjectId]) {
+        return <Navigate to="/" replace />;
+    }
+
+    const project = userData.projects[currentProjectId];
+
+    return (
+        <div className="w-full max-w-6xl mx-auto p-4 sm:p-8 flex-grow flex flex-col justify-center">
+            <header className="text-center mb-12 animate-fade-in-down">
+                <h1 className="text-5xl font-bold text-foreground">{project.name}</h1>
+                <p className="text-lg text-muted-foreground italic mt-2">
+                    A chronicle by {currentUser}
+                </p>
+            </header>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 opacity-0 animate-fade-in-up">
+                <Link to="/timeline" className="lg:col-span-1">
+                    <NavigationCard
+                        icon={<QuillIcon />}
+                        title="📜 Chronicle"
+                        description="Weave the threads of destiny and order thy story's events."
+                    />
+                </Link>
+                <Link to="/characters" className="lg:col-span-1">
+                    <NavigationCard
+                        icon={<CrestIcon />}
+                        title="🧝 Souls"
+                        description="Summon forth thy heroes and villains; chronicle their traits."
+                    />
+                </Link>
+                <Link to="/catalogue" className="lg:col-span-1">
+                    <NavigationCard
+                        icon={<CatalogueIcon />}
+                        title="📦 Catalogue"
+                        description="Catalogue the creatures, items, and curiosities of thy realm."
+                    />
+                </Link>
+                <Link to="/writing-room" className="lg:col-span-1">
+                    <NavigationCard
+                        icon={<BookIcon />}
+                        title="✍️ Lore"
+                        description="Enter the scriptorium and let the ink flow upon the page."
+                    />
+                </Link>
+                <Link to="/worlds" className="lg:col-span-1">
+                    <NavigationCard
+                        icon={<WorldIcon />}
+                        title="🌍 Realms"
+                        description="Define the lands, cities, and regions that cradle thy saga."
+                    />
+                </Link>
+            </div>
+        </div>
+    );
+};
+
+export default ProjectPage;

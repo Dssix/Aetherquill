@@ -2,41 +2,21 @@
   "name": "aetherquill",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "workspaces": [
+    "packages/client",
+    "packages/server",
+    "packages/common"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "fuse.js": "^7.1.0",
-    "marked": "^16.1.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-hot-toast": "^2.5.2",
-    "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.7.0",
-    "zustand": "^5.0.6"
+    "dev:client": "npm run dev --workspace=packages/client",
+    "dev:server": "npm run start:dev --workspace=packages/server",
+    "dev": "npm-run-all --parallel dev:client dev:server",
+    "build": "npm run build --workspace=packages/client",
+    "preview": "npm run preview --workspace=packages/client"
   },
   "devDependencies": {
-    "@eslint/js": "^9.30.1",
-    "@tailwindcss/typography": "^0.5.16",
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@types/react-router-dom": "^5.3.3",
-    "@vitejs/plugin-react": "^4.6.0",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.30.1",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "globals": "^16.3.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
-    "typescript": "~5.8.3",
-    "typescript-eslint": "^8.35.1",
-    "vite": "^7.0.4"
+    "@nestjs/cli": "^11.0.10",
+    "npm-run-all": "^4.1.5",
+    "typescript": "~5.8.3"
   }
 }
