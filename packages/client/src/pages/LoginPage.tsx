@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { loadUserData, saveUserData, addUsernameToList } from '../utils/storage.ts';
-import { type UserData } from '../dataModels/userData.ts';
+import { type UserData } from 'aetherquill-common';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';
 

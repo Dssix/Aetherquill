@@ -1,8 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { type TimelineEvent } from '../data/timelineEvents.ts';
-import {type Era} from '../data/eraManager.ts'; // We'll need to refactor Eras next
+import { type TimelineEvent, type Era } from 'aetherquill-common';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { EraForm } from '../components/EraForm.tsx';
 import { getUniqueTags } from '../utils/tagUtils.ts';

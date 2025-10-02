@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { type Character } from '../types/character.ts';
+import { type Character } from 'aetherquill-common';
 import AddCharacterPanel from '../components/panels/AddCharacterPanel.tsx';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';

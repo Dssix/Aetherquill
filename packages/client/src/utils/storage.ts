@@ -1,4 +1,4 @@
-import { type UserData } from '../dataModels/userData.ts';
+import { type UserData } from 'aetherquill-common';
 
 const USERS_LIST_KEY = 'aetherquill__users';
 

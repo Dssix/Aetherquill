@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { type Era } from '../data/eraManager.ts';
+import { type Era } from 'aetherquill-common';
 
 // The props contract is updated to include the onDelete function.
 interface EraDividerProps {

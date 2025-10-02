@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { type Character } from '../../types/character.ts';
-import { type World } from '../../types/world.ts';
-import { type WritingEntry } from '../../stores/useWritingStore.ts';
+import {
+    type Character,
+    type World,
+    type WritingEntry
+} from 'aetherquill-common';
 import Button from '../ui/Button.tsx';
 import Card from '../ui/Card.tsx';
 

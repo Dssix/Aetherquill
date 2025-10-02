@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { type ProjectData } from '../dataModels/userData.ts';
+import { type ProjectData } from 'aetherquill-common';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';
 
@@ -101,6 +101,7 @@ const DashboardPage: React.FC = () => {
             characters: [],
             worlds: [],
             writings: [],
+            catalogue: []
         };
 
         addProject(newProject);

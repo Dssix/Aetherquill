@@ -1,9 +1,7 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { type TimelineEvent } from '../data/timelineEvents.ts';
-import { type Character } from '../types/character.ts';
-import { type WritingEntry } from '../stores/useWritingStore.ts';
+import { type TimelineEvent, type Character, type WritingEntry } from 'aetherquill-common';
 
 interface TimelineNodeProps {
     event: TimelineEvent;

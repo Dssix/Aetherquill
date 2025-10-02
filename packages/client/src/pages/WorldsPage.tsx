@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { type World } from '../types/world.ts';
+import { type World } from 'aetherquill-common';
 import WorldForm from '../components/WorldForm.tsx';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';

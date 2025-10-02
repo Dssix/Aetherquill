@@ -1,5 +1,5 @@
 import { getAllUsernames, addUsernameToList, saveUserData } from './storage.ts';
-import { type UserData, type ProjectData } from '../dataModels/userData.ts';
+import { type UserData, type ProjectData } from 'aetherquill-common';
 
 const DEFAULT_USERNAME = 'default';
 const DEFAULT_PROJECT_ID = 'project_default';
@@ -31,6 +31,7 @@ export const runLegacyMigration = () => {
         characters: legacyCharacters,
         worlds: legacyWorlds,
         writings: legacyWritings,
+        catalogue: []
     };
 
     // --- Step 3: Assemble the ProjectData into our new UserData structure ---

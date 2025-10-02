@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { type CatalogueItem } from '../types/catalogue.ts';
+import { type CatalogueItem } from 'aetherquill-common';
 import AddCatalogueItemPanel from '../components/panels/AddCatalogueItemPanel.tsx';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';

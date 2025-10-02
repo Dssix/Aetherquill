@@ -1,4 +1,4 @@
-import type { TimelineEvent } from '../data/timelineEvents.ts';
+import { type TimelineEvent } from 'aetherquill-common';
 
 /**
  * Scans all timeline events and returns a sorted array of unique tags.

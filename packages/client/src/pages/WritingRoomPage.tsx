@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 
-import { type WritingEntry } from '../stores/useWritingStore.ts';
+import { type WritingEntry } from 'aetherquill-common';
 
 import WritingEditorPanel from '../components/panels/WritingEditorPanel.tsx';
 import Card from '../components/ui/Card.tsx';

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { type CatalogueItem } from '../../types/catalogue.ts';
-import { type Character } from '../../types/character.ts';
-import { type World } from '../../types/world.ts';
-import { type WritingEntry } from '../../stores/useWritingStore.ts';
-import { type TimelineEvent } from '../../data/timelineEvents.ts';
+import {
+    type CatalogueItem,
+    type Character,
+    type World,
+    type WritingEntry,
+    type TimelineEvent
+} from 'aetherquill-common';
 import Button from '../ui/Button.tsx';
 import EntityLinker from '../ui/EntityLinker.tsx';
 

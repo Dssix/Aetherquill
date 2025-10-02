@@ -1,17 +1,5 @@
 // src/data/timelineEvents.ts
-
-export interface TimelineEvent {
-    id: string;
-    eraId: string; // An event MUST now belong to an Era. It can no longer be null.
-    // --- RENAMED PROPERTY ---
-    displayDate: string; // Replaces 'date'. This is a simple string like "15th Day of the Sun's Height".
-    order: number;
-    title: string;
-    description: string;
-    tags?: string[];
-    linkedCharacterIds?: string[];
-    linkedWritingIds?: string[];
-}
+import type {TimelineEvent} from "aetherquill-common";
 
 // We migrate our old data to this new format.
 // The old absolute dates are now descriptive, relative 'displayDate' strings.

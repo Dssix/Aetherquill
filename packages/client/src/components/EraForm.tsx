@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type Era } from '../data/eraManager.ts';
+import { type Era } from 'aetherquill-common';
 import Button from './ui/Button.tsx';
 
 // The props define the contract for this component.

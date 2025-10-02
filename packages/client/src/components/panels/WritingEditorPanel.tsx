@@ -1,10 +1,12 @@
 import React, {useState, useEffect, useMemo} from 'react';
-import { type WritingEntry } from '../../stores/useWritingStore.ts';
+import {
+    type WritingEntry,
+    type Character,
+    type World,
+    type TimelineEvent
+} from 'aetherquill-common';
 import Button from '../ui/Button.tsx';
 import EntityLinker from '../ui/EntityLinker.tsx';
-import type {Character} from "../../types/character.ts";
-import type {World} from "../../types/world.ts";
-import type {TimelineEvent} from "../../data/timelineEvents.ts";
 
 interface WritingEditorPanelProps {
     isOpen: boolean;

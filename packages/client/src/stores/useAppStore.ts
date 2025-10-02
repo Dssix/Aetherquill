@@ -1,13 +1,16 @@
 import { create } from 'zustand';
 import toast from 'react-hot-toast';
-import { type UserData, type ProjectData } from '../dataModels/userData.ts';
+import {
+    type UserData,
+    type ProjectData,
+    type Character,
+    type TimelineEvent,
+    type Era,
+    type World,
+    type WritingEntry,
+    type CatalogueItem,
+} from 'aetherquill-common';
 import { saveUserData } from '../utils/storage.ts';
-import { type Character } from '../types/character.ts';
-import { type TimelineEvent } from '../data/timelineEvents.ts';
-import { type Era } from '../data/eraManager.ts';
-import { type World } from '../types/world.ts';
-import { type WritingEntry } from './useWritingStore.ts';
-import { type CatalogueItem } from '../types/catalogue.ts';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';

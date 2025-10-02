@@ -1,9 +1,11 @@
 import Fuse from 'fuse.js';
-import { type ProjectData } from '../dataModels/userData.ts';
-import { type Character } from '../types/character.ts';
-import { type World } from '../types/world.ts';
-import { type WritingEntry } from '../stores/useWritingStore.ts';
-import { type TimelineEvent } from '../data/timelineEvents.ts';
+import {
+    type ProjectData,
+    type Character,
+    type World,
+    type WritingEntry,
+    type TimelineEvent
+} from 'aetherquill-common';
 
 // --- Step 1: The Unified Blueprint for Searching ---
 // We define a common shape that all our entities can be mapped to.
@@ -106,7 +108,7 @@ export const performSearch = (project: ProjectData, query: string): SearchResult
                 path = `/writing/${originalItem.id}`;
                 break;
             case 'Event':
-                context = (originalItem as TimelineEvent).date;
+                context = (originalItem as TimelineEvent).displayDate;
                 path = '/timeline';
                 break;
         }

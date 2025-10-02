@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type TimelineEvent } from '../data/timelineEvents.ts';
-import { type Character } from '../types/character.ts';
-import { type WritingEntry } from '../stores/useWritingStore.ts';
-import { type Era } from '../data/eraManager.ts'; // Import Era
+import { type TimelineEvent, type Character, type WritingEntry, type Era } from 'aetherquill-common';
 import Button from './ui/Button.tsx';
 import EntityLinker from './ui/EntityLinker.tsx';
 import Card from './ui/Card.tsx';
