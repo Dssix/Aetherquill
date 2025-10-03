@@ -7,9 +7,12 @@
 
 # The folder containing all downloaded npm packages.
 /node_modules
+/packages/client/node_modules
+/packages/server/node_modules
 
 # The folder where Vite builds the final, production-ready app.
 /dist
+/packages/server/dist
 
 # The cache directory used by Vite for the development server.
 /.vite
