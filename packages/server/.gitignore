@@ -9,10 +9,10 @@
 /node_modules
 
 # The folder where Vite builds the final, production-ready app.
-/packages/server/dist
+/dist
 
 # The cache directory used by Vite for the development server.
-/packages/client/.vite
+/.vite
 
 
 # ===================================================================
