@@ -23,3 +23,11 @@ import { AuthModule } from './auth/auth.module'; // Make sure AuthModule is impo
   providers: [],
 })
 export class AppModule {}
+import { Module } from '@nestjs/common';
+
+@Module({
+    imports: [],
+    controllers: [],
+    providers: [],
+})
+export class AppModule {}
