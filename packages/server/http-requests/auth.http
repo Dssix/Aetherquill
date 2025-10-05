@@ -1,8 +1,70 @@
-### Register a new user
+### Register a New User (SUCCESS)
+# This should succeed if the username is new.
 POST http://localhost:3000/auth/register
 Content-Type: application/json
 
 {
-  "username": "la_ribe",
-  "password": "Strong_Password"
+  "username": "scribe_luna",
+  "password": "a_very_secure_password"
 }
+
+### Register a Duplicate User (SHOULD FAIL with 409 Conflict)
+# Run this AFTER the first request has succeeded.
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "username": "scribe_luna",
+  "password": "another_password"
+}
+
+### Login with Correct Credentials (SUCCESS)
+# Use the same credentials you registered with in step 1.
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "scribe_luna",
+  "password": "a_very_secure_password"
+}
+
+### Login with Incorrect Password (SHOULD FAIL with 401 Unauthorized)
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "username": "scribe_luna",
+  "password": "wrong_password"
+}
+
+### Get Profile without Token (SHOULD FAIL with 401 Unauthorized)
+POST http://localhost:3000/auth/profile
+# Note: No Authorization header is sent.
+
+### Get Profile with a Valid Token (SUCCESS)
+# IMPORTANT: You must run request #3 first and paste the token below.
+POST http://localhost:3000/auth/profile
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzU5NTkyMjkzLCJleHAiOjE3NjAxOTcwOTN9.Y27eTEo02ftlbYykIC7Mu1kdraQGWR5Uow5NEV0mr6g
+
+### Create a new project (SUCCESS)
+# This request must include a valid JWT from a logged-in user.
+# First, run the login request in auth.http to get a fresh token.
+POST http://localhost:3000/projects
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzU5NjQ0NjY4LCJleHAiOjE3NjAyNDk0Njh9.XuDCtU-4o9MufxRaYxhcijHG30pxZj-D5V1ks0us_NE
+
+{
+  "name": "Test"
+}
+
+### Get all projects for a user (SUCCESS)
+# This request must include a valid JWT from a logged-in user.
+# First, run the login request in auth.http to get a fresh token.
+GET http://localhost:3000/projects
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzU5NjQ0NjY4LCJleHAiOjE3NjAyNDk0Njh9.XuDCtU-4o9MufxRaYxhcijHG30pxZj-D5V1ks0us_NE
+
+### Delete a project (SUCCESS)
+# This request must include a valid JWT from a logged-in user.
+# You must get the ID of a project you own to place in the URL.
+DELETE http://localhost:3000/projects/68e20c8052458779d9aaba27
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzU5NjQ0NjY4LCJleHAiOjE3NjAyNDk0Njh9.XuDCtU-4o9MufxRaYxhcijHG30pxZj-D5V1ks0us_NE

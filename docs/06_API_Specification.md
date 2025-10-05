@@ -159,7 +159,8 @@ Endpoints for managing a user's projects. The user is identified by their JWT.
         "timeline": [],
         "characters": [],
         "worlds": [],
-        "writings": []
+        "writings": [],
+        "catalogue": []
       }
     }
     ```
@@ -249,3 +250,13 @@ These endpoints manage the core entities within a specific project. All are pref
         }
         ```
     -   **Success Response (`200 OK`):** Returns the updated list of events for that era.
+
+# In docs/06_API_Specification.md
+
+### Catalogue (`.../catalogue`)
+
+-   **`GET /projects/{projectId}/catalogue`**: Get a list of all catalogue items.
+-   **`POST /projects/{projectId}/catalogue`**: Create a new catalogue item.
+-   **`PUT /projects/{projectId}/catalogue/{itemId}`**: Update an existing catalogue item.
+-   **`DELETE /projects/{projectId}/catalogue/{itemId}`**: Delete a catalogue item.
+    *(Request/Response structures follow the same pattern as Characters, using the `CatalogueItem` data model.)*

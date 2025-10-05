@@ -6,7 +6,7 @@ Aetherquill is conceived as a **local-first, private, and immersive digital scri
 
 1.  **The Sanctum:** The writer's work is sacred and private. The application operates entirely within the browser, persisting all data to `localStorage`. There are no cloud servers, no accounts, and no distractions. It is a personal tool for thought and creation.
 2.  **The Atmosphere:** The user interface is crafted to feel like a vintage, candlelit workspace. Every element, from the parchment backgrounds to the serif fonts, is chosen to enhance immersion and inspire creativity, avoiding modern, sterile design trends.
-3.  **The Web of Echoes:** The most critical principle. A story's lore is not a collection of isolated lists, but an interconnected web. Aetherquill is architected from the ground up to create, manage, and visualize the links between its core entities: Characters, Worlds, Timeline Events, and Writings.
+3.  **The Web of Echoes:** The most critical principle. A story's lore is not a collection of isolated lists, but an interconnected web. Aetherquill is architected from the ground up to create, manage, and visualize the links between its core entities: Characters, Worlds, Timeline Events, Writings, and Catalogue Items.
 
 ---
 

@@ -23,23 +23,23 @@ The backend server's directory structure will strictly adhere to the best practi
     -   **Controllers (`*.controller.ts`):** The "Gatekeepers." They are responsible for handling incoming HTTP requests, validating incoming data, and returning responses. They define our API endpoints.
     -   **Services (`*.service.ts`):** The "Master Craftsmen." They contain the core business logic. They are responsible for interacting with the database and performing the actual work (e.g., creating a character, fetching a project).
     -   **Modules (`*.module.ts`):** The "Chamber Blueprints." They bundle the controllers and services of a specific feature together into a cohesive unit.
--   **Example Structure (`/packages/server/src/`):**
-    ```
-    src/
-    ├── app.module.ts         # The root module of the application
-    ├── main.ts               # The application entry point
-    │
-    ├── auth/                 # Feature module for Authentication
-    │   ├── auth.controller.ts
-    │   ├── auth.module.ts
-    │   └── auth.service.ts
-    │
-    └── projects/             # Feature module for Projects
-        ├── projects.controller.ts
-        ├── projects.module.ts
-        └── projects.service.ts
-    ```
-
+  -   **Example Structure (`/packages/server/src/`):**
+      ```
+      src/
+      ├── app.module.ts         # The root module of the application
+      ├── main.ts               # The application entry point
+      │
+      ├── auth/                 # Feature module for Authentication
+      │   ├── auth.controller.ts
+      │   ├── auth.module.ts
+      │   └── auth.service.ts
+      │
+      └── projects/             # The main feature module for managing all projects AND their contents
+          ├── projects.controller.ts      # Handles /projects, /projects/{id}/characters, /projects/{id}/catalogue, etc.
+          ├── projects.module.ts
+          └── projects.service.ts         # Contains all business logic for projects, characters, worlds, catalogue, etc.
+      ```
+      
 ---
 
 ## 3. The Master Templates: Shared `common` Package

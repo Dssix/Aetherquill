@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module'; // Make sure AuthModule is imported
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -11,23 +12,16 @@ import { AuthModule } from './auth/auth.module'; // Make sure AuthModule is impo
     // --- Add this block ---
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('DATABASE_URL'),
       }),
       inject: [ConfigService],
     }),
     // ----------------------
-    AuthModule, // Ensure this is present
+    AuthModule,
+    ProjectsModule, // Ensure this is present
   ],
   controllers: [],
   providers: [],
-})
-export class AppModule {}
-import { Module } from '@nestjs/common';
-
-@Module({
-    imports: [],
-    controllers: [],
-    providers: [],
 })
 export class AppModule {}

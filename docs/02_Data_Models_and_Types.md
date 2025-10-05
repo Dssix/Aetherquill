@@ -35,6 +35,7 @@ export interface ProjectData {
   characters: Character[];
   worlds: World[];
   writings: WritingEntry[];
+  catalogue: CatalogueItem[];
 }
 ```
 
@@ -142,3 +143,21 @@ export interface TimelineEvent {
   linkedWritingIds?: string[];
 }
 ```
+
+### `CatalogueItem`
+
+Represents any user-defined curiosity, such as a creature, plant, artifact, or concept. Its key feature is the flexible `category` property, which allows for user-driven organization.
+
+```ts
+export interface CatalogueItem {
+  id: string;
+  name: string;
+  category: string; // The user-defined category, e.g., "Creatures", "Plants"
+  description: string;
+
+  // --- Interlinking ---
+  linkedCharacterIds?: string[];
+  linkedWorldId?: string | null;
+  linkedEventIds?: string[];
+  linkedWritingIds?: string[];
+}
