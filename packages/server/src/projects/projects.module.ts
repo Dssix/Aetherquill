@@ -22,5 +22,6 @@ import { AuthModule } from '../auth/auth.module';
   ],
   controllers: [ProjectsController],
   providers: [ProjectsService],
+  exports: [ProjectsService],
 })
 export class ProjectsModule {}

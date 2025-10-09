@@ -17,6 +17,7 @@ import { Project, ProjectDocument } from './schemas/project.schema';
 import { Model } from 'mongoose';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -98,5 +99,51 @@ export class ProjectsService {
 
     // Step 4: If all checks pass, delete the project.
     await this.projectModel.deleteOne({ _id: projectId }).exec();
+  }
+
+  /**
+   * Updates an existing project after verifying ownership and checking for name conflicts.
+   * @param projectId The ID of the project to update.
+   * @param updateProjectDto The data containing the updates (e.g., new name).
+   * @param user The authenticated user attempting the update.
+   * @returns The updated project document.
+   */
+  async updateProject(
+    projectId: string,
+    updateProjectDto: UpdateProjectDto,
+    user: UserDocument,
+  ): Promise<ProjectDocument> {
+    // Step 1: Find the project by its ID.
+    const project = await this.projectModel.findById(projectId).exec();
+
+    // Step 2: If the project doesn't exist, throw a 404 Not Found error.
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+
+    // Step 3: Perform the AUTHORIZATION check.
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    // Step 4: Check for name conflicts with OTHER projects.
+    // A user should not be able to rename Project A to the same name as their existing Project B.
+    if (updateProjectDto.name !== project.name) {
+      const existingProject = await this.projectModel.findOne({
+        name: updateProjectDto.name,
+        owner: user._id,
+      });
+      if (existingProject) {
+        throw new ConflictException(
+          'A project with this name already exists for your account.',
+        );
+      }
+    }
+
+    // Step 5: Apply the updates and save the document.
+    project.name = updateProjectDto.name;
+    return project.save();
   }
 }

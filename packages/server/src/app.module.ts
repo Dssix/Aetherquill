@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module'; // Make sure AuthModule is imported
 import { ProjectsModule } from './projects/projects.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { ProjectsModule } from './projects/projects.module';
     }),
     // ----------------------
     AuthModule,
-    ProjectsModule, // Ensure this is present
+    ProjectsModule,
+    UserModule, // Ensure this is present
   ],
   controllers: [],
   providers: [],

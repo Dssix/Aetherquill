@@ -15,12 +15,14 @@ import {
   Delete,
   Param,
   HttpCode,
+  Put,
 } from '@nestjs/common';
 import { ProjectsService } from './projects.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../auth/get-user.decorator';
 import type { UserDocument } from '../auth/schemas/user.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -72,5 +74,25 @@ export class ProjectsController {
   ) {
     // Delegate the deletion logic and authorization check to the service.
     return this.projectsService.deleteProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating a project's details.
+   * @param projectId The ID of the project to update, from the URL.
+   * @param updateProjectDto The new data for the project, from the request body.
+   * @param user The authenticated user, for ownership verification.
+   * @returns The complete, updated project object.
+   */
+  @Put(':projectId')
+  updateProject(
+    @Param('projectId') projectId: string,
+    @Body() updateProjectDto: UpdateProjectDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateProject(
+      projectId,
+      updateProjectDto,
+      user,
+    );
   }
 }
