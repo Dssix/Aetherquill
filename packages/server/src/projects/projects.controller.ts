@@ -23,6 +23,7 @@ import { GetUser } from '../auth/get-user.decorator';
 import type { UserDocument } from '../auth/schemas/user.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { CreateCharacterDto } from './dto/create-character.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -92,6 +93,26 @@ export class ProjectsController {
     return this.projectsService.updateProject(
       projectId,
       updateProjectDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for creating a new character within a specific project.
+   * @param projectId The ID of the project, from the URL.
+   * @param createCharacterDto The data for the new character, from the request body.
+   * @param user The authenticated user, for ownership verification.
+   * @returns The complete, newly created character object.
+   */
+  @Post(':projectId/characters')
+  createCharacter(
+    @Param('projectId') projectId: string,
+    @Body() createCharacterDto: CreateCharacterDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createCharacter(
+      projectId,
+      createCharacterDto,
       user,
     );
   }

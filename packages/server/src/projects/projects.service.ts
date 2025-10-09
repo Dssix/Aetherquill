@@ -18,6 +18,9 @@ import { Model } from 'mongoose';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import mongoose from 'mongoose';
+import { Character } from 'aetherquill-common';
+import { CreateCharacterDto } from './dto/create-character.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -145,5 +148,49 @@ export class ProjectsService {
     // Step 5: Apply the updates and save the document.
     project.name = updateProjectDto.name;
     return project.save();
+  }
+
+  /**
+   * Creates a new character and adds it to a specific project.
+   * @param projectId The ID of the project to add the character to.
+   * @param createCharacterDto The data for the new character.
+   * @param user The authenticated user, for ownership verification.
+   * @returns The newly created character object.
+   */
+  async createCharacter(
+    projectId: string,
+    createCharacterDto: CreateCharacterDto,
+    user: UserDocument,
+  ): Promise<Character> {
+    //  Find the project and perform the AUTHORIZATION check.
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add a character to this project.',
+      );
+    }
+
+    // Construct the new character object.
+    // We generate a new MongoDB ObjectId for the character's unique ID.
+    const newCharacter: Character = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      ...createCharacterDto,
+      // Ensure linking fields are initialized if not provided.
+      linkedWorldId: null,
+      linkedEventIds: [],
+      linkedWritingIds: [],
+    };
+
+    // Step 3: Add the new character to the project's characters array.
+    project.characters.push(newCharacter);
+
+    // Step 4: Save the parent project document.
+    await project.save();
+
+    // Step 5: Return the newly created character object as confirmation.
+    return newCharacter;
   }
 }

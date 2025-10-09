@@ -1,11 +1,9 @@
-import {
-    type Character,
-    type World,
-    type WritingEntry,
-    type TimelineEvent,
-    type Era,
-    type CatalogueItem
-} from '../src/';
+import { type CatalogueItem } from './catalogue.js';
+import { type Era } from './era.js'
+import { type TimelineEvent } from './timeline.js';
+import { type WritingEntry } from './writing.js';
+import { type World } from './world.js';
+import { type Character } from './character.js';
 
 // This is the blueprint for a single project.
 // It is a container for all the entities that belong to it.

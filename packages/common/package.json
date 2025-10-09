@@ -1,12 +1,17 @@
 {
   "name": "aetherquill-common",
   "version": "1.0.0",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "license": "ISC",
-  "description": ""
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "class-validator": "^0.14.1"
+  }
 }

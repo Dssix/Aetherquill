@@ -51,7 +51,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjc
 # First, run the login request in auth.http to get a fresh token.
 POST http://localhost:3000/projects
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDEzMjgxLCJleHAiOjE3NjA2MTgwODF9.FaqQkhvtWx5O-265I3jwC3KkQ878unNecIlGI3fSKyE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
 
 {
   "name": "Test"
@@ -61,7 +61,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjc
 # This request must include a valid JWT from a logged-in user.
 # First, run the login request in auth.http to get a fresh token.
 GET http://localhost:3000/projects
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDE3MzM4LCJleHAiOjE3NjA2MjIxMzh9.s2m_EDm_ThfyLvQ75XMtxYYLLKV0da-6k6o2FsmJpA4
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
 
 ### Delete a project (SUCCESS)
 # This request must include a valid JWT from a logged-in user.
@@ -84,3 +84,30 @@ Content-Type: application/json
 # This is the main endpoint for loading the frontend application state.
 GET http://localhost:3000/me/data
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDE3MzM4LCJleHAiOjE3NjA2MjIxMzh9.s2m_EDm_ThfyLvQ75XMtxYYLLKV0da-6k6o2FsmJpA4
+
+### Create a new character in a project (SUCCESS)
+# This request must include a valid JWT and a valid project ID.
+POST http://localhost:3000/projects/68e203877927d8d5fdea025d/characters
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
+Content-Type: application/json
+
+{
+  "name": "Elara",
+  "species": "Human",
+  "traits": [
+    {
+      "id": "appearance",
+      "label": "Appearance",
+      "value": "Long silver hair, sharp blue eyes.",
+      "isCustom": false,
+      "isTextarea": true
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "value": "A former royal scribe, now a wandering scholar.",
+      "isCustom": false,
+      "isTextarea": true
+    }
+  ]
+}
