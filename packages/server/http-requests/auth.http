@@ -1,3 +1,4 @@
+# ---------- Login ----------
 ### Register a New User (SUCCESS)
 # This should succeed if the username is new.
 POST http://localhost:3000/auth/register
@@ -37,6 +38,8 @@ Content-Type: application/json
   "password": "wrong_password"
 }
 
+
+# ---------- Profile ----------
 ### Get Profile without Token (SHOULD FAIL with 401 Unauthorized)
 POST http://localhost:3000/auth/profile
 # Note: No Authorization header is sent.
@@ -44,70 +47,4 @@ POST http://localhost:3000/auth/profile
 ### Get Profile with a Valid Token (SUCCESS)
 # IMPORTANT: You must run request #3 first and paste the token below.
 POST http://localhost:3000/auth/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDEzMjgxLCJleHAiOjE3NjA2MTgwODF9.FaqQkhvtWx5O-265I3jwC3KkQ878unNecIlGI3fSKyE
-
-### Create a new project (SUCCESS)
-# This request must include a valid JWT from a logged-in user.
-# First, run the login request in auth.http to get a fresh token.
-POST http://localhost:3000/projects
-Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
-
-{
-  "name": "Test"
-}
-
-### Get all projects for a user (SUCCESS)
-# This request must include a valid JWT from a logged-in user.
-# First, run the login request in auth.http to get a fresh token.
-GET http://localhost:3000/projects
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
-
-### Delete a project (SUCCESS)
-# This request must include a valid JWT from a logged-in user.
-# You must get the ID of a project you own to place in the URL.
-DELETE http://localhost:3000/projects/68e20c8052458779d9aaba27
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzU5NjQ0NjY4LCJleHAiOjE3NjAyNDk0Njh9.XuDCtU-4o9MufxRaYxhcijHG30pxZj-D5V1ks0us_NE
-
-### Update a project's name (SUCCESS)
-# This request must include a valid JWT from a logged-in user.
-# You must get the ID of a project you own to place in the URL.
-PUT http://localhost:3000/projects/68e7ac71ed83f0e734549f02
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDEzMjgxLCJleHAiOjE3NjA2MTgwODF9.FaqQkhvtWx5O-265I3jwC3KkQ878unNecIlGI3fSKyE
-Content-Type: application/json
-
-{
-  "name": "The Moonstone Chronicle"
-}
-
-### Get all user data (SUCCESS)
-# This is the main endpoint for loading the frontend application state.
-GET http://localhost:3000/me/data
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDE3MzM4LCJleHAiOjE3NjA2MjIxMzh9.s2m_EDm_ThfyLvQ75XMtxYYLLKV0da-6k6o2FsmJpA4
-
-### Create a new character in a project (SUCCESS)
-# This request must include a valid JWT and a valid project ID.
-POST http://localhost:3000/projects/68e203877927d8d5fdea025d/characters
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDM1NTYwLCJleHAiOjE3NjA2NDAzNjB9.dp1o7WEsLOAVc9w2IWcmlxyZuz61P2ufWw_hpVebgbk
-Content-Type: application/json
-
-{
-  "name": "Elara",
-  "species": "Human",
-  "traits": [
-    {
-      "id": "appearance",
-      "label": "Appearance",
-      "value": "Long silver hair, sharp blue eyes.",
-      "isCustom": false,
-      "isTextarea": true
-    },
-    {
-      "id": "background",
-      "label": "Background",
-      "value": "A former royal scribe, now a wandering scholar.",
-      "isCustom": false,
-      "isTextarea": true
-    }
-  ]
-}
+Authorization: Bearer <JWT>

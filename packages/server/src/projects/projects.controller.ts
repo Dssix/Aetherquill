@@ -24,6 +24,9 @@ import type { UserDocument } from '../auth/schemas/user.schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { CreateCharacterDto } from './dto/create-character.dto';
+import { UpdateCharacterDto } from './dto/update-character.dto';
+import { CreateWorldDto } from './dto/create-world.dto';
+import { UpdateWorldDto } from './dto/update-world.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -115,5 +118,120 @@ export class ProjectsController {
       createCharacterDto,
       user,
     );
+  }
+
+  /**
+   * Defines the endpoint for retrieving all characters within a specific project.
+   * @param projectId The ID of the project, from the URL.
+   * @param user The authenticated user, for ownership verification.
+   * @returns An array of the project's character objects.
+   */
+  @Get(':projectId/characters')
+  getCharactersInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getCharactersInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing character.
+   * @param projectId The ID of the project, from the URL.
+   * @param characterId The ID of the character to update, from the URL.
+   * @param updateCharacterDto The new data for the character.
+   * @param user The authenticated user.
+   * @returns The complete, updated character object.
+   */
+  @Put(':projectId/characters/:characterId')
+  updateCharacter(
+    @Param('projectId') projectId: string,
+    @Param('characterId') characterId: string,
+    @Body() updateCharacterDto: UpdateCharacterDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateCharacter(
+      projectId,
+      characterId,
+      updateCharacterDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for deleting a character from a project.
+   * @param projectId The ID of the project, from the URL.
+   * @param characterId The ID of the character to delete, from the URL.
+   * @param user The authenticated user.
+   */
+  @Delete(':projectId/characters/:characterId')
+  @HttpCode(204)
+  deleteCharacter(
+    @Param('projectId') projectId: string,
+    @Param('characterId') characterId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteCharacter(projectId, characterId, user);
+  }
+
+  // =============================================================================
+  // WORLDS ENDPOINTS
+  // =============================================================================
+
+  /**
+   * Defines the endpoint for creating a new world within a specific project.
+   * @route POST /projects/:projectId/worlds
+   */
+  @Post(':projectId/worlds')
+  createWorld(
+    @Param('projectId') projectId: string,
+    @Body() createWorldDto: CreateWorldDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createWorld(projectId, createWorldDto, user);
+  }
+
+  /**
+   * Defines the endpoint for retrieving all worlds within a specific project.
+   * @route GET /projects/:projectId/worlds
+   */
+  @Get(':projectId/worlds')
+  getWorldsInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getWorldsInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing world.
+   * @route PUT /projects/:projectId/worlds/:worldId
+   */
+  @Put(':projectId/worlds/:worldId')
+  updateWorld(
+    @Param('projectId') projectId: string,
+    @Param('worldId') worldId: string,
+    @Body() updateWorldDto: UpdateWorldDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateWorld(
+      projectId,
+      worldId,
+      updateWorldDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for deleting a world from a project.
+   * @route DELETE /projects/:projectId/worlds/:worldId
+   */
+  @Delete(':projectId/worlds/:worldId')
+  @HttpCode(204)
+  deleteWorld(
+    @Param('projectId') projectId: string,
+    @Param('worldId') worldId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteWorld(projectId, worldId, user);
   }
 }

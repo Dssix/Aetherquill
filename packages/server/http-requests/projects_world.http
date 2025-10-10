@@ -1,0 +1,45 @@
+###
+# ==============================================================================
+# WORLDS API REQUESTS
+# ==============================================================================
+
+### 1. Create a new World (SUCCESS)
+# Creates a new world within the project specified in the URL.
+# Requires a valid JWT and a project ID you own.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/worlds
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Aethelgard",
+  "theme": "Dark Fantasy",
+  "setting": "Age of Embers",
+  "description": "A realm slowly succumbing to a creeping, magical blight."
+}
+
+### 2. Get all Worlds in a Project (SUCCESS)
+# Retrieves a list of all worlds for the specified project.
+# The response will be an array of world objects.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/worlds
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### 3. Update an existing World (SUCCESS)
+# Updates the details of a specific world.
+# You must get the world's ID from the response of request #1 or #2.
+PUT http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/worlds/<PASTE_WORLD_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Aethelgard, The Blighted Kingdom",
+  "theme": "Dark Fantasy",
+  "setting": "Age of Embers",
+  "description": "A once-proud kingdom, now a realm slowly succumbing to a creeping, magical blight that corrupts all it touches."
+}
+
+### 4. Delete a World (SUCCESS)
+# Deletes a specific world from a project.
+# The response should be a 204 No Content status code.
+DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/worlds/<PASTE_WORLD_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

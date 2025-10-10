@@ -1,0 +1,71 @@
+# ---------- Character ----------
+### Create a new character in a project (SUCCESS)
+# This request must include a valid JWT and a valid project ID.
+POST http://localhost:3000/projects/<Project_ID>/characters
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "name": "Test",
+  "species": "Data",
+  "traits": [
+    {
+      "id": "appearance",
+      "label": "Appearance",
+      "value": "Long silver hair, sharp blue eyes.",
+      "isCustom": false,
+      "isTextarea": true
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "value": "A former royal scribe, now a wandering scholar.",
+      "isCustom": false,
+      "isTextarea": true
+    }
+  ]
+}
+
+### Get all characters in a project (SUCCESS)
+# This request must include a valid JWT and a valid project ID.
+GET http://localhost:3000/projects/<Project_ID>/characters
+Authorization: Bearer <JWT>
+
+### Update a character (SUCCESS)
+# Get projectId and characterId from previous GET requests.
+PUT http://localhost:3000/projects/<Project_ID>/characters/<Character_ID>
+Authorization: Bearer <JWT>
+Content-Type: application/json
+
+{
+  "name": "Elara the Wise",
+  "species": "High Elf",
+  "traits": [
+    {
+      "id": "appearance",
+      "label": "Appearance",
+      "value": "Long silver hair, sharp blue eyes that glow faintly.",
+      "isCustom": false,
+      "isTextarea": true
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "value": "A former royal scribe, now a wandering scholar seeking lost lore.",
+      "isCustom": false,
+      "isTextarea": true
+    },
+    {
+      "id": "custom_123",
+      "label": "Allegiance",
+      "value": "The Silver Circle",
+      "isCustom": true,
+      "isTextarea": false
+    }
+  ]
+}
+
+### Delete a character (SUCCESS)
+# Get projectId and characterId from previous GET requests.
+DELETE http://localhost:3000/projects/<Project_ID>/characters/<Character_ID>
+Authorization: Bearer <JWT>

@@ -1,0 +1,5 @@
+# ---------- Get user Data -----------
+### Get all user data (SUCCESS)
+# This is the main endpoint for loading the frontend application state.
+GET http://localhost:3000/me/data
+Authorization: Bearer <JWT>

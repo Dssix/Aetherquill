@@ -19,8 +19,11 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import mongoose from 'mongoose';
-import { Character } from 'aetherquill-common';
+import { Character, World } from 'aetherquill-common';
 import { CreateCharacterDto } from './dto/create-character.dto';
+import { UpdateCharacterDto } from './dto/update-character.dto';
+import { CreateWorldDto } from './dto/create-world.dto';
+import { UpdateWorldDto } from './dto/update-world.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -192,5 +195,281 @@ export class ProjectsService {
 
     // Step 5: Return the newly created character object as confirmation.
     return newCharacter;
+  }
+
+  /**
+   * Retrieves all characters from a specific project after verifying ownership.
+   * @param projectId The ID of the project whose characters are to be fetched.
+   * @param user The authenticated user, for ownership verification.
+   * @returns A promise that resolves to an array of Character objects.
+   */
+  async getCharactersInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<Character[]> {
+    // Step 1: Find the project and perform the AUTHORIZATION check.
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view characters in this project.',
+      );
+    }
+
+    // Step 2: If all checks pass, return the project's embedded characters array.
+    return project.characters;
+  }
+
+  /**
+   * Updates an existing character within a specific project.
+   * @param projectId The ID of the project containing the character.
+   * @param characterId The ID of the character to update.
+   * @param updateCharacterDto The data containing the updates.
+   * @param user The authenticated user, for ownership verification.
+   * @returns The updated character object.
+   */
+  async updateCharacter(
+    projectId: string,
+    characterId: string,
+    updateCharacterDto: UpdateCharacterDto,
+    user: UserDocument,
+  ): Promise<Character> {
+    // Find the project and perform the AUTHORIZATION check.
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    // Find the specific character within the project's array.
+    const characterIndex = project.characters.findIndex(
+      (c) => c.id === characterId,
+    );
+    if (characterIndex === -1) {
+      throw new NotFoundException(
+        `Character with ID "${characterId}" not found in this project.`,
+      );
+    }
+
+    // Create the updated character object.
+    // We merge the existing character data with the new data from the DTO.
+    const updatedCharacter: Character = {
+      ...project.characters[characterIndex], // Start with the original character data
+      ...updateCharacterDto, // Overwrite with the new data
+      id: characterId, // Ensure the original ID is preserved
+    };
+
+    // Replace the old character object with the updated one in the array.
+    project.characters[characterIndex] = updatedCharacter;
+
+    // Mark the array as modified for Mongoose to detect the change.
+    project.markModified('characters');
+
+    // Save the parent project document.
+    await project.save();
+
+    // SReturn the updated character object.
+    return updatedCharacter;
+  }
+
+  /**
+   * Deletes a character from a specific project.
+   * @param projectId The ID of the project containing the character.
+   * @param characterId The ID of the character to delete.
+   * @param user The authenticated user, for ownership verification.
+   * @returns A promise that resolves when the operation is complete.
+   */
+  async deleteCharacter(
+    projectId: string,
+    characterId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    // Find the project and perform the AUTHORIZATION check.
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    // Find the character to ensure it exists before attempting deletion.
+    const characterExists = project.characters.some(
+      (c) => c.id === characterId,
+    );
+    if (!characterExists) {
+      throw new NotFoundException(
+        `Character with ID "${characterId}" not found in this project.`,
+      );
+    }
+
+    // Remove the character from the array using Array.prototype.filter.
+    project.characters = project.characters.filter((c) => c.id !== characterId);
+
+    // Mark the array as modified and save the parent project.
+    project.markModified('characters');
+    await project.save();
+  }
+
+  // =============================================================================
+  // WORLDS SERVICE METHODS
+  // =============================================================================
+
+  /**
+   * Creates a new world and adds it to a specified project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param createWorldDto The data for the new world.
+   * @param user The authenticated user performing the action.
+   * @returns The newly created world object.
+   * @throws {NotFoundException} If the project is not found.
+   * @throws {ForbiddenException} If the user does not own the project.
+   */
+  async createWorld(
+    projectId: string,
+    createWorldDto: CreateWorldDto,
+    user: UserDocument,
+  ): Promise<World> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add a world to this project.',
+      );
+    }
+
+    const newWorld: World = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      ...createWorldDto,
+      // Initialize linking fields to ensure data consistency.
+      linkedCharacterIds: [],
+      linkedWritingIds: [],
+      linkedEventIds: [],
+    };
+
+    project.worlds.push(newWorld);
+    await project.save();
+
+    return newWorld;
+  }
+
+  /**
+   * Retrieves all worlds within a specific project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param user The authenticated user performing the action.
+   * @returns An array of world objects.
+   * @throws {NotFoundException} If the project is not found.
+   * @throws {ForbiddenException} If the user does not own the project.
+   */
+  async getWorldsInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<World[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view worlds in this project.',
+      );
+    }
+
+    return project.worlds;
+  }
+
+  /**
+   * Updates an existing world within a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param worldId The identifier of the world to update.
+   * @param updateWorldDto The data containing the updates.
+   * @param user The authenticated user performing the action.
+   * @returns The updated world object.
+   * @throws {NotFoundException} If the project or world is not found.
+   * @throws {ForbiddenException} If the user does not own the project.
+   */
+  async updateWorld(
+    projectId: string,
+    worldId: string,
+    updateWorldDto: UpdateWorldDto,
+    user: UserDocument,
+  ): Promise<World> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const worldIndex = project.worlds.findIndex((w) => w.id === worldId);
+    if (worldIndex === -1) {
+      throw new NotFoundException(
+        `World with ID "${worldId}" not found in this project.`,
+      );
+    }
+
+    const updatedWorld: World = {
+      ...project.worlds[worldIndex],
+      ...updateWorldDto,
+      id: worldId,
+    };
+
+    project.worlds[worldIndex] = updatedWorld;
+    project.markModified('worlds');
+    await project.save();
+
+    return updatedWorld;
+  }
+
+  /**
+   * Deletes a world from a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param worldId The identifier of the world to delete.
+   * @param user The authenticated user performing the action.
+   * @throws {NotFoundException} If the project or world is not found.
+   * @throws {ForbiddenException} If the user does not own the project.
+   */
+  async deleteWorld(
+    projectId: string,
+    worldId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const initialLength = project.worlds.length;
+    project.worlds = project.worlds.filter((w) => w.id !== worldId);
+
+    if (project.worlds.length === initialLength) {
+      throw new NotFoundException(
+        `World with ID "${worldId}" not found in this project.`,
+      );
+    }
+
+    project.markModified('worlds');
+    await project.save();
   }
 }
