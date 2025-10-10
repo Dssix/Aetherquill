@@ -31,6 +31,7 @@ import { CreateWritingDto } from './dto/create-writing.dto';
 import { UpdateWritingDto } from './dto/update-writing.dto';
 import { CreateEraDto } from './dto/create-era.dto';
 import { UpdateEraDto } from './dto/update-era.dto';
+import { ReorderErasDto } from './dto/reorder-eras.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -360,5 +361,18 @@ export class ProjectsController {
     @GetUser() user: UserDocument,
   ) {
     return this.projectsService.deleteEra(projectId, eraId, user);
+  }
+
+  /**
+   * Defines the special endpoint for reordering all Eras in a project.
+   * @route POST /projects/:projectId/eras/reorder
+   */
+  @Post(':projectId/eras/reorder')
+  reorderEras(
+    @Param('projectId') projectId: string,
+    @Body() reorderErasDto: ReorderErasDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.reorderEras(projectId, reorderErasDto, user);
   }
 }

@@ -50,3 +50,56 @@ Content-Type: application/json
 # The response should be a 204 No Content status code.
 DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>
 Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+###
+# ==============================================================================
+# ERAS REORDERING API REQUESTS
+# ==============================================================================
+
+### A. SETUP: Create Three Eras
+# We need at least three eras to properly test reordering.
+# Run this request three times, changing the name each time.
+# Example Names: "1. The First Age", "2. The Middle Age", "3. The Final Age"
+# The server will create them with order: 0, 1, 2.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "1. The First Age",
+  "description": ""
+}
+
+
+### B. VERIFY INITIAL ORDER: Get all Eras
+# Run this after creating your three eras.
+# The response array will show the eras in their original order [0, 1, 2].
+# **CRITICAL:** Copy the "id" of each of the three eras from the response.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### C. THE REORDER COMMAND: Reorder the Eras (SUCCESS)
+# This is the main test. We will command the server to change the order.
+# We will move "The Final Age" (originally order 2) to the beginning.
+# The new desired order is [Final, First, Middle].
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/reorder
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "orderedIds": [
+    "<PASTE_ID_OF_FINAL_AGE_HERE>",
+    "<PASTE_ID_OF_FIRST_AGE_HERE>",
+    "<PASTE_ID_OF_MIDDLE_AGE_HERE>"
+  ]
+}
+
+
+### D. FINAL VERIFICATION: Get all Eras Again
+# Run this after the reorder command has succeeded.
+# The response array should now show the eras in the new, updated order.
+# "The Final Age" should be first (order: 0), "The First Age" second (order: 1),
+# and "The Middle Age" third (order: 2).
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

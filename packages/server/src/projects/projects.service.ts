@@ -28,6 +28,7 @@ import { CreateWritingDto } from './dto/create-writing.dto';
 import { UpdateWritingDto } from './dto/update-writing.dto';
 import { CreateEraDto } from './dto/create-era.dto';
 import { UpdateEraDto } from './dto/update-era.dto';
+import { ReorderErasDto } from './dto/reorder-eras.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -778,5 +779,54 @@ export class ProjectsService {
 
     project.markModified('eras');
     await project.save();
+  }
+
+  /**
+   * Reorders all Eras within a project based on a provided sequence of IDs.
+   *
+   * @param projectId The identifier of the target project.
+   * @param reorderErasDto The DTO containing the array of ordered Era IDs.
+   * @param user The authenticated user performing the action.
+   * @returns The full, updated array of Era objects in their new order.
+   */
+  async reorderEras(
+    projectId: string,
+    reorderErasDto: ReorderErasDto,
+    user: UserDocument,
+  ): Promise<Era[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const { orderedIds } = reorderErasDto;
+
+    // Create a map for quick lookup of the new order by ID.
+    const orderMap = new Map<string, number>();
+    orderedIds.forEach((id, index) => {
+      orderMap.set(id, index);
+    });
+
+    // Update the 'order' property for each Era in the project based on the map.
+    project.eras.forEach((era) => {
+      const newOrder = orderMap.get(era.id);
+      if (newOrder !== undefined) {
+        era.order = newOrder;
+      }
+    });
+
+    // Sort the project's eras array itself to reflect the new order.
+    project.eras.sort((a, b) => a.order - b.order);
+
+    project.markModified('eras');
+    await project.save();
+
+    // Return the newly sorted array of Eras.
+    return project.eras;
   }
 }
