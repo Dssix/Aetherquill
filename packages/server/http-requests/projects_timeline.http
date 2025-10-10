@@ -1,0 +1,121 @@
+###
+# ==============================================================================
+# TIMELINE EVENTS API REQUESTS
+# ==============================================================================
+
+### 1. SETUP: Ensure an Era Exists
+# Before creating events, we need an Era to place them in.
+# Run the "Create a new Era" request from the Eras section if you don't have one.
+# Then, run "Get all Eras" and copy the ID of the Era you want to use.
+# <PASTE_ERA_ID_HERE>
+
+### 2. Create the First Event in an Era (SUCCESS)
+# Creates the first event within the Era specified in the URL.
+# Note the 'order' will be 0.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>/events
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "The Coronation",
+  "displayDate": "First Day of the New Reign",
+  "description": "The prince ascends to the throne, inheriting a troubled kingdom.",
+  "tags": ["political", "royal-family"]
+}
+
+### 3. Create a Second Event in the SAME Era (SUCCESS)
+# Creates another event in the same Era. Note the 'order' will be 1.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>/events
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "The Northern Rebellion",
+  "displayDate": "Tenth Year of the New Reign",
+  "description": "Barons in the north rise up in defiance of the new king's taxes.",
+  "tags": ["conflict", "political"]
+}
+
+### 4. Get all Timeline Events in a Project (SUCCESS)
+# Retrieves a list of ALL events for the specified project, across ALL eras.
+# The response will be an array of event objects.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/timeline
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### 5. Update an existing Event (SUCCESS)
+# Updates the details of a specific event.
+# You must get the event's ID from the response of request #2, #3, or #4.
+PUT http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/timeline/<PASTE_EVENT_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "The Great Northern Rebellion",
+  "displayDate": "Tenth Year of the New Reign",
+  "description": "Fueled by resentment, the powerful barons in the north rise up in open defiance of the new king's crippling taxes.",
+  "tags": ["conflict", "political", "major-battle"]
+}
+
+### 6. Delete an Event (SUCCESS)
+# Deletes a specific event from a project.
+# The response should be a 204 No Content status code.
+DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/timeline/<PASTE_EVENT_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+###
+# ==============================================================================
+# TIMELINE EVENTS REORDERING API REQUESTS
+# ==============================================================================
+
+### A. SETUP: Create an Era and Three Events
+# First, ensure you have an Era to work with. Use the "Create a new Era" request
+# if needed, and get its ID.
+# Then, run the "Create the First Event" request three times with different titles.
+# Example Titles: "1. The Treaty", "2. The Betrayal", "3. The War"
+# The server will create them with order: 0, 1, 2 within that Era.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>/events
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "1. The Treaty",
+  "displayDate": "Year 1",
+  "description": "A fragile peace is signed."
+}
+
+
+### B. VERIFY INITIAL ORDER: Get all Timeline Events
+# Run this after creating your three events.
+# The response array will show all events. Filter mentally for your target Era
+# and confirm they are in the original order [0, 1, 2].
+# **CRITICAL:** Copy the "id" of each of the three events from the response.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/timeline
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### C. THE REORDER COMMAND: Reorder the Events in the Era (SUCCESS)
+# This is the main test. We will command the server to change the event order.
+# We will move "The War" (originally order 2) to be the second event.
+# The new desired order is [Treaty, War, Betrayal].
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>/events/reorder
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "orderedIds": [
+    "<PASTE_ID_OF_TREATY_HERE>",
+    "<PASTE_ID_OF_WAR_HERE>",
+    "<PASTE_ID_OF_BETRAYAL_HERE>"
+  ]
+}
+
+
+### D. FINAL VERIFICATION: Get all Timeline Events Again
+# Run this after the reorder command has succeeded.
+# The response array will contain all events for the project.
+# When you look at the events belonging to your target Era, they should now
+# be in the new, updated order. "The Treaty" should be first (order: 0),
+# "The War" second (order: 1), and "The Betrayal" third (order: 2).
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/timeline
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

@@ -32,6 +32,9 @@ import { UpdateWritingDto } from './dto/update-writing.dto';
 import { CreateEraDto } from './dto/create-era.dto';
 import { UpdateEraDto } from './dto/update-era.dto';
 import { ReorderErasDto } from './dto/reorder-eras.dto';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { ReorderEventsDto } from './dto/reorder-events.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -374,5 +377,92 @@ export class ProjectsController {
     @GetUser() user: UserDocument,
   ) {
     return this.projectsService.reorderEras(projectId, reorderErasDto, user);
+  }
+
+  // =============================================================================
+  // TIMELINE EVENTS ENDPOINTS
+  // =============================================================================
+
+  /**
+   * Defines the endpoint for creating a new Timeline Event within a specific Era.
+   * @route POST /projects/:projectId/eras/:eraId/events
+   */
+  @Post(':projectId/eras/:eraId/events')
+  createEvent(
+    @Param('projectId') projectId: string,
+    @Param('eraId') eraId: string,
+    @Body() createEventDto: CreateEventDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createEvent(
+      projectId,
+      eraId,
+      createEventDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for retrieving all Timeline Events in a project.
+   * @route GET /projects/:projectId/timeline
+   */
+  @Get(':projectId/timeline')
+  getEventsInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getEventsInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing Timeline Event.
+   * @route PUT /projects/:projectId/timeline/:eventId
+   */
+  @Put(':projectId/timeline/:eventId')
+  updateEvent(
+    @Param('projectId') projectId: string,
+    @Param('eventId') eventId: string,
+    @Body() updateEventDto: UpdateEventDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateEvent(
+      projectId,
+      eventId,
+      updateEventDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for deleting a Timeline Event from a project.
+   * @route DELETE /projects/:projectId/timeline/:eventId
+   */
+  @Delete(':projectId/timeline/:eventId')
+  @HttpCode(204)
+  deleteEvent(
+    @Param('projectId') projectId: string,
+    @Param('eventId') eventId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteEvent(projectId, eventId, user);
+  }
+
+  /**
+   * Defines the special endpoint for reordering all Events within a specific Era.
+   * @route POST /projects/:projectId/eras/:eraId/events/reorder
+   */
+  @Post(':projectId/eras/:eraId/events/reorder')
+  reorderEventsInEra(
+    @Param('projectId') projectId: string,
+    @Param('eraId') eraId: string,
+    @Body() reorderEventsDto: ReorderEventsDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.reorderEventsInEra(
+      projectId,
+      eraId,
+      reorderEventsDto,
+      user,
+    );
   }
 }

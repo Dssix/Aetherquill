@@ -19,7 +19,13 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import mongoose from 'mongoose';
-import { Character, World, WritingEntry, Era } from 'aetherquill-common';
+import {
+  Character,
+  World,
+  WritingEntry,
+  Era,
+  TimelineEvent,
+} from 'aetherquill-common';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { CreateWorldDto } from './dto/create-world.dto';
@@ -29,6 +35,9 @@ import { UpdateWritingDto } from './dto/update-writing.dto';
 import { CreateEraDto } from './dto/create-era.dto';
 import { UpdateEraDto } from './dto/update-era.dto';
 import { ReorderErasDto } from './dto/reorder-eras.dto';
+import { CreateEventDto } from './dto/create-event.dto';
+import { UpdateEventDto } from './dto/update-event.dto';
+import { ReorderEventsDto } from './dto/reorder-events.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -656,6 +665,16 @@ export class ProjectsService {
       );
     }
 
+    // Check if an Era with the same name already exists within this project.
+    const existingEra = project.eras.find(
+      (era) => era.name === createEraDto.name,
+    );
+    if (existingEra) {
+      throw new ConflictException(
+        'An Era with this name already exists in this project.',
+      );
+    }
+
     // Determine the order for the new Era.
     // If there are existing eras, it's the highest current order + 1.
     // Otherwise, it starts at 0.
@@ -731,6 +750,18 @@ export class ProjectsService {
       throw new NotFoundException(
         `Era with ID "${eraId}" not found in this project.`,
       );
+    }
+
+    // If the name is being changed, check for conflicts with other Eras.
+    if (updateEraDto.name !== project.eras[eraIndex].name) {
+      const existingEra = project.eras.find(
+        (era) => era.name === updateEraDto.name,
+      );
+      if (existingEra) {
+        throw new ConflictException(
+          'An Era with this name already exists in this project.',
+        );
+      }
     }
 
     const updatedEra: Era = {
@@ -828,5 +859,251 @@ export class ProjectsService {
 
     // Return the newly sorted array of Eras.
     return project.eras;
+  }
+
+  // =============================================================================
+  // TIMELINE EVENTS SERVICE METHODS
+  // =============================================================================
+
+  /**
+   * Creates a new Timeline Event and adds it to a specified project.
+   * It automatically calculates the 'order' to place the new event at the end
+   * of the list of events within its parent Era.
+   *
+   * @param projectId The identifier of the target project.
+   * @param eraId The identifier of the parent Era for the new event.
+   * @param createEventDto The data for the new event.
+   * @param user The authenticated user performing the action.
+   * @returns The newly created Timeline Event object.
+   */
+  async createEvent(
+    projectId: string,
+    eraId: string,
+    createEventDto: CreateEventDto,
+    user: UserDocument,
+  ): Promise<TimelineEvent> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add an event to this project.',
+      );
+    }
+    // Ensure the parent Era exists within the project.
+    if (!project.eras.some((e) => e.id === eraId)) {
+      throw new NotFoundException(
+        `Era with ID "${eraId}" not found in this project.`,
+      );
+    }
+
+    // Check if an event with the same title already exists within the same Era.
+    const existingEvent = project.timeline.find(
+      (event) => event.eraId === eraId && event.title === createEventDto.title,
+    );
+    if (existingEvent) {
+      throw new ConflictException(
+        'An event with this title already exists in this Era.',
+      );
+    }
+
+    // Filter to get events only within the target Era to calculate the new order.
+    const eventsInEra = project.timeline.filter(
+      (event) => event.eraId === eraId,
+    );
+    const maxOrder =
+      eventsInEra.length > 0
+        ? Math.max(...eventsInEra.map((e) => e.order))
+        : -1;
+    const newOrder = maxOrder + 1;
+
+    const newEvent: TimelineEvent = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      eraId: eraId,
+      order: newOrder,
+      ...createEventDto,
+      // Initialize linking fields.
+      linkedCharacterIds: [],
+      linkedWritingIds: [],
+    };
+
+    project.timeline.push(newEvent);
+    await project.save();
+
+    return newEvent;
+  }
+
+  /**
+   * Retrieves all Timeline Events for a specific project.
+   * Note: This fetches all events; filtering by Era is typically a frontend concern.
+   *
+   * @param projectId The identifier of the target project.
+   * @param user The authenticated user performing the action.
+   * @returns An array of Timeline Event objects.
+   */
+  async getEventsInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<TimelineEvent[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view events in this project.',
+      );
+    }
+
+    return project.timeline;
+  }
+
+  /**
+   * Updates an existing Timeline Event within a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param eventId The identifier of the event to update.
+   * @param updateEventDto The data containing the updates.
+   * @param user The authenticated user performing the action.
+   * @returns The updated Timeline Event object.
+   */
+  async updateEvent(
+    projectId: string,
+    eventId: string,
+    updateEventDto: UpdateEventDto,
+    user: UserDocument,
+  ): Promise<TimelineEvent> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const eventIndex = project.timeline.findIndex((e) => e.id === eventId);
+    if (eventIndex === -1) {
+      throw new NotFoundException(
+        `Event with ID "${eventId}" not found in this project.`,
+      );
+    }
+
+    if (updateEventDto.title !== project.timeline[eventIndex].title) {
+      const eventEraId = project.timeline[eventIndex].eraId;
+      const existingEvent = project.timeline.find(
+        (event) =>
+          event.eraId === eventEraId && event.title === updateEventDto.title,
+      );
+      if (existingEvent) {
+        throw new ConflictException(
+          'An event with this title already exists in this Era.',
+        );
+      }
+    }
+
+    const updatedEvent: TimelineEvent = {
+      ...project.timeline[eventIndex],
+      ...updateEventDto,
+      id: eventId,
+    };
+
+    project.timeline[eventIndex] = updatedEvent;
+    project.markModified('timeline');
+    await project.save();
+
+    return updatedEvent;
+  }
+
+  /**
+   * Deletes a Timeline Event from a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param eventId The identifier of the event to delete.
+   * @param user The authenticated user performing the action.
+   */
+  async deleteEvent(
+    projectId: string,
+    eventId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const initialLength = project.timeline.length;
+    project.timeline = project.timeline.filter((e) => e.id !== eventId);
+
+    if (project.timeline.length === initialLength) {
+      throw new NotFoundException(
+        `Event with ID "${eventId}" not found in this project.`,
+      );
+    }
+
+    project.markModified('timeline');
+    await project.save();
+  }
+
+  /**
+   * Reorders all Timeline Events within a specific Era based on a provided sequence of IDs.
+   * @param projectId The identifier of the target project.
+   * @param eraId The identifier of the Era whose events are to be reordered.
+   * @param reorderEventsDto The DTO containing the array of ordered Event IDs.
+   * @param user The authenticated user performing the action.
+   * @returns The full, updated array of all Timeline Events for the project.
+   */
+  async reorderEventsInEra(
+    projectId: string,
+    eraId: string,
+    reorderEventsDto: ReorderEventsDto,
+    user: UserDocument,
+  ): Promise<TimelineEvent[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+    if (!project.eras.some((e) => e.id === eraId)) {
+      throw new NotFoundException(
+        `Era with ID "${eraId}" not found in this project.`,
+      );
+    }
+
+    const { orderedIds } = reorderEventsDto;
+
+    // Create a map for quick lookup of the new order by ID.
+    const orderMap = new Map<string, number>();
+    orderedIds.forEach((id, index) => {
+      orderMap.set(id, index);
+    });
+
+    // Update the 'order' property for each event that belongs to the target Era.
+    project.timeline.forEach((event) => {
+      // We only modify events that are within the specified Era.
+      if (event.eraId === eraId) {
+        const newOrder = orderMap.get(event.id);
+        if (newOrder !== undefined) {
+          event.order = newOrder;
+        }
+      }
+    });
+
+    project.markModified('timeline');
+    await project.save();
+
+    // Return the complete timeline for the project, allowing the frontend to easily update its state.
+    return project.timeline;
   }
 }
