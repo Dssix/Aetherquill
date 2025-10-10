@@ -1,0 +1,43 @@
+###
+# ==============================================================================
+# WRITINGS API REQUESTS
+# ==============================================================================
+
+### 1. Create a new Writing Entry (SUCCESS)
+# Creates a new manuscript within the project specified in the URL.
+# Requires a valid JWT and a project ID you own.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/writings
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "The First Dawn",
+  "content": "The sun rose over the Blighted Kingdom of Aethelgard, its rays struggling to pierce the perpetual gloom...",
+  "tags": ["chapter-1", "introduction"]
+}
+
+### 2. Get all Writing Entries in a Project (SUCCESS)
+# Retrieves a list of all manuscripts for the specified project.
+# The response will be an array of writing entry objects.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/writings
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### 3. Update an existing Writing Entry (SUCCESS)
+# Updates the details of a specific manuscript.
+# You must get the writing entry's ID from the response of request #1 or #2.
+PUT http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/writings/<PASTE_WRITING_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "title": "Chapter 1: The First Dawn",
+  "content": "The sun rose reluctantly over the Blighted Kingdom of Aethelgard. Its weak rays, struggling to pierce the perpetual gloom, offered little warmth to the frost-covered cobblestones below.",
+  "tags": ["chapter-1", "introduction", "revised"]
+}
+
+### 4. Delete a Writing Entry (SUCCESS)
+# Deletes a specific manuscript from a project.
+# The response should be a 204 No Content status code.
+DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/writings/<PASTE_WRITING_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

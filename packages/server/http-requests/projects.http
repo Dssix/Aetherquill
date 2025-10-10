@@ -14,7 +14,7 @@ Authorization: Bearer <JWT>
 # This request must include a valid JWT from a logged-in user.
 # First, run the login request in auth.http to get a fresh token.
 GET http://localhost:3000/projects
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNjcmliZV9sdW5hIiwiaWF0IjoxNzYwMDg1NzUwLCJleHAiOjE3NjA2OTA1NTB9.Hb0_MDrMOBPIVI-VCyZxNsg85TPlsBuzkhQDyVo2dVI
+Authorization: Bearer <JWT>
 
 ### Delete a project (SUCCESS)
 # This request must include a valid JWT from a logged-in user.

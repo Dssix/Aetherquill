@@ -27,6 +27,8 @@ import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
+import { CreateWritingDto } from './dto/create-writing.dto';
+import { UpdateWritingDto } from './dto/update-writing.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -233,5 +235,71 @@ export class ProjectsController {
     @GetUser() user: UserDocument,
   ) {
     return this.projectsService.deleteWorld(projectId, worldId, user);
+  }
+
+  // =============================================================================
+  // WRITINGS ENDPOINTS
+  // =============================================================================
+
+  /**
+   * Defines the endpoint for creating a new writing entry within a project.
+   * @route POST /projects/:projectId/writings
+   */
+  @Post(':projectId/writings')
+  createWriting(
+    @Param('projectId') projectId: string,
+    @Body() createWritingDto: CreateWritingDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createWriting(
+      projectId,
+      createWritingDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for retrieving all writing entries in a project.
+   * @route GET /projects/:projectId/writings
+   */
+  @Get(':projectId/writings')
+  getWritingsInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getWritingsInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing writing entry.
+   * @route PUT /projects/:projectId/writings/:writingId
+   */
+  @Put(':projectId/writings/:writingId')
+  updateWriting(
+    @Param('projectId') projectId: string,
+    @Param('writingId') writingId: string,
+    @Body() updateWritingDto: UpdateWritingDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateWriting(
+      projectId,
+      writingId,
+      updateWritingDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for deleting a writing entry from a project.
+   * @route DELETE /projects/:projectId/writings/:writingId
+   */
+  @Delete(':projectId/writings/:writingId')
+  @HttpCode(204)
+  deleteWriting(
+    @Param('projectId') projectId: string,
+    @Param('writingId') writingId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteWriting(projectId, writingId, user);
   }
 }

@@ -19,11 +19,13 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import mongoose from 'mongoose';
-import { Character, World } from 'aetherquill-common';
+import { Character, World, WritingEntry } from 'aetherquill-common';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
+import { CreateWritingDto } from './dto/create-writing.dto';
+import { UpdateWritingDto } from './dto/update-writing.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -470,6 +472,156 @@ export class ProjectsService {
     }
 
     project.markModified('worlds');
+    await project.save();
+  }
+
+  // =============================================================================
+  // WRITINGS SERVICE METHODS
+  // =============================================================================
+
+  /**
+   * Creates a new writing entry and adds it to a specified project.
+   * @param projectId The identifier of the target project.
+   * @param createWritingDto The data for the new writing entry.
+   * @param user The authenticated user performing the action.
+   * @returns The newly created writing entry object.
+   */
+  async createWriting(
+    projectId: string,
+    createWritingDto: CreateWritingDto,
+    user: UserDocument,
+  ): Promise<WritingEntry> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add a writing entry to this project.',
+      );
+    }
+
+    const newWriting: WritingEntry = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      ...createWritingDto,
+      // Generate server-side timestamps for data integrity.
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      // Ensure linking fields are initialized.
+      linkedCharacterIds: [],
+      linkedWorldId: null,
+      linkedEventIds: [],
+    };
+
+    project.writings.push(newWriting);
+    await project.save();
+
+    return newWriting;
+  }
+
+  /**
+   * Retrieves all writing entries within a specific project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param user The authenticated user performing the action.
+   * @returns An array of writing entry objects.
+   */
+  async getWritingsInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<WritingEntry[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view writing entries in this project.',
+      );
+    }
+
+    return project.writings;
+  }
+
+  /**
+   * Updates an existing writing entry within a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param writingId The identifier of the writing entry to update.
+   * @param updateWritingDto The data containing the updates.
+   * @param user The authenticated user performing the action.
+   * @returns The updated writing entry object.
+   */
+  async updateWriting(
+    projectId: string,
+    writingId: string,
+    updateWritingDto: UpdateWritingDto,
+    user: UserDocument,
+  ): Promise<WritingEntry> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const writingIndex = project.writings.findIndex((w) => w.id === writingId);
+    if (writingIndex === -1) {
+      throw new NotFoundException(
+        `Writing entry with ID "${writingId}" not found in this project.`,
+      );
+    }
+
+    const updatedWriting: WritingEntry = {
+      ...project.writings[writingIndex],
+      ...updateWritingDto,
+      id: writingId,
+      // Critically, update the 'updatedAt' timestamp on every modification.
+      updatedAt: Date.now(),
+    };
+
+    project.writings[writingIndex] = updatedWriting;
+    project.markModified('writings');
+    await project.save();
+
+    return updatedWriting;
+  }
+
+  /**
+   * Deletes a writing entry from a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param writingId The identifier of the writing entry to delete.
+   * @param user The authenticated user performing the action.
+   */
+  async deleteWriting(
+    projectId: string,
+    writingId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const initialLength = project.writings.length;
+    project.writings = project.writings.filter((w) => w.id !== writingId);
+
+    if (project.writings.length === initialLength) {
+      throw new NotFoundException(
+        `Writing entry with ID "${writingId}" not found in this project.`,
+      );
+    }
+
+    project.markModified('writings');
     await project.save();
   }
 }
