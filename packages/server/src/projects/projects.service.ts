@@ -19,13 +19,15 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import mongoose from 'mongoose';
-import { Character, World, WritingEntry } from 'aetherquill-common';
+import { Character, World, WritingEntry, Era } from 'aetherquill-common';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
 import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
 import { CreateWritingDto } from './dto/create-writing.dto';
 import { UpdateWritingDto } from './dto/update-writing.dto';
+import { CreateEraDto } from './dto/create-era.dto';
+import { UpdateEraDto } from './dto/update-era.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -622,6 +624,159 @@ export class ProjectsService {
     }
 
     project.markModified('writings');
+    await project.save();
+  }
+
+  // =============================================================================
+  // ERAS SERVICE METHODS
+  // =============================================================================
+
+  /**
+   * Creates a new Era and adds it to a specified project.
+   * It automatically calculates the 'order' to place the new Era at the end.
+   *
+   * @param projectId The identifier of the target project.
+   * @param createEraDto The data for the new Era.
+   * @param user The authenticated user performing the action.
+   * @returns The newly created Era object.
+   */
+  async createEra(
+    projectId: string,
+    createEraDto: CreateEraDto,
+    user: UserDocument,
+  ): Promise<Era> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add an Era to this project.',
+      );
+    }
+
+    // Determine the order for the new Era.
+    // If there are existing eras, it's the highest current order + 1.
+    // Otherwise, it starts at 0.
+    const maxOrder =
+      project.eras.length > 0
+        ? Math.max(...project.eras.map((e) => e.order))
+        : -1;
+    const newOrder = maxOrder + 1;
+
+    const newEra: Era = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      ...createEraDto,
+      order: newOrder,
+    };
+
+    project.eras.push(newEra);
+    await project.save();
+
+    return newEra;
+  }
+
+  /**
+   * Retrieves all Eras within a specific project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param user The authenticated user performing the action.
+   * @returns An array of Era objects.
+   */
+  async getErasInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<Era[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view Eras in this project.',
+      );
+    }
+
+    return project.eras;
+  }
+
+  /**
+   * Updates an existing Era within a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param eraId The identifier of the Era to update.
+   * @param updateEraDto The data containing the updates.
+   * @param user The authenticated user performing the action.
+   * @returns The updated Era object.
+   */
+  async updateEra(
+    projectId: string,
+    eraId: string,
+    updateEraDto: UpdateEraDto,
+    user: UserDocument,
+  ): Promise<Era> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const eraIndex = project.eras.findIndex((e) => e.id === eraId);
+    if (eraIndex === -1) {
+      throw new NotFoundException(
+        `Era with ID "${eraId}" not found in this project.`,
+      );
+    }
+
+    const updatedEra: Era = {
+      ...project.eras[eraIndex],
+      ...updateEraDto,
+      id: eraId,
+    };
+
+    project.eras[eraIndex] = updatedEra;
+    project.markModified('eras');
+    await project.save();
+
+    return updatedEra;
+  }
+
+  /**
+   * Deletes an Era from a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param eraId The identifier of the Era to delete.
+   * @param user The authenticated user performing the action.
+   */
+  async deleteEra(
+    projectId: string,
+    eraId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const initialLength = project.eras.length;
+    project.eras = project.eras.filter((e) => e.id !== eraId);
+
+    if (project.eras.length === initialLength) {
+      throw new NotFoundException(
+        `Era with ID "${eraId}" not found in this project.`,
+      );
+    }
+
+    project.markModified('eras');
     await project.save();
   }
 }

@@ -1,0 +1,52 @@
+###
+# ==============================================================================
+# ERAS API REQUESTS
+# ==============================================================================
+
+### 1. Create the First Era (SUCCESS)
+# Creates the first historical period in the project. Note the 'order' will be 0.
+# Requires a valid JWT and a project ID you own.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "The Age of Creation",
+  "description": "A time of myth and legend, when the world was new."
+}
+
+### 2. Create a Second Era (SUCCESS)
+# Creates another Era. Note the 'order' will automatically be 1.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "The Age of Kings",
+  "description": "Empires rose and fell, and great dynasties were forged."
+}
+
+### 3. Get all Eras in a Project (SUCCESS)
+# Retrieves a list of all Eras for the specified project.
+# The response will be an array of Era objects, which you can see are in order.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### 4. Update an existing Era (SUCCESS)
+# Updates the details of a specific Era.
+# You must get the Era's ID from the response of request #1, #2, or #3.
+PUT http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "The Golden Age of Kings",
+  "description": "Empires rose and fell across the continents, and great dynasties were forged in fire and blood."
+}
+
+### 5. Delete an Era (SUCCESS)
+# Deletes a specific Era from a project.
+# The response should be a 204 No Content status code.
+DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/eras/<PASTE_ERA_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

@@ -29,6 +29,8 @@ import { CreateWorldDto } from './dto/create-world.dto';
 import { UpdateWorldDto } from './dto/update-world.dto';
 import { CreateWritingDto } from './dto/create-writing.dto';
 import { UpdateWritingDto } from './dto/update-writing.dto';
+import { CreateEraDto } from './dto/create-era.dto';
+import { UpdateEraDto } from './dto/update-era.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -301,5 +303,62 @@ export class ProjectsController {
     @GetUser() user: UserDocument,
   ) {
     return this.projectsService.deleteWriting(projectId, writingId, user);
+  }
+
+  // =============================================================================
+  // ERAS ENDPOINTS
+  // =============================================================================
+
+  /**
+   * Defines the endpoint for creating a new Era within a project.
+   * @route POST /projects/:projectId/eras
+   */
+  @Post(':projectId/eras')
+  createEra(
+    @Param('projectId') projectId: string,
+    @Body() createEraDto: CreateEraDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createEra(projectId, createEraDto, user);
+  }
+
+  /**
+   * Defines the endpoint for retrieving all Eras in a project.
+   * @route GET /projects/:projectId/eras
+   */
+  @Get(':projectId/eras')
+  getErasInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getErasInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing Era.
+   * @route PUT /projects/:projectId/eras/:eraId
+   */
+  @Put(':projectId/eras/:eraId')
+  updateEra(
+    @Param('projectId') projectId: string,
+    @Param('eraId') eraId: string,
+    @Body() updateEraDto: UpdateEraDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateEra(projectId, eraId, updateEraDto, user);
+  }
+
+  /**
+   * Defines the endpoint for deleting an Era from a project.
+   * @route DELETE /projects/:projectId/eras/:eraId
+   */
+  @Delete(':projectId/eras/:eraId')
+  @HttpCode(204)
+  deleteEra(
+    @Param('projectId') projectId: string,
+    @Param('eraId') eraId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteEra(projectId, eraId, user);
   }
 }

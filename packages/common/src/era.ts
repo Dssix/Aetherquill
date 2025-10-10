@@ -1,6 +1,6 @@
-export interface Era {
-    id: string;
-    name: string;
+export class Era {
+    id!: string;
+    name!: string;
     description?: string;
-    order: number;
+    order!: number;
 }
