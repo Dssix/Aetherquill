@@ -1,0 +1,68 @@
+###
+# ==============================================================================
+# CATALOGUE API REQUESTS
+# ==============================================================================
+
+### 1. Create a "Creature" Item (SUCCESS)
+# Creates a new item in the "Creatures" category.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Gryphon",
+  "category": "Creatures",
+  "description": "A majestic beast with the body of a lion and the head and wings of an eagle."
+}
+
+### 2. Create a Duplicate "Creature" Item (SHOULD FAIL with 409 Conflict)
+# Attempts to create another item with the name "Gryphon" in the "Creatures" category.
+# This must fail our uniqueness check.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Gryphon",
+  "category": "Creatures",
+  "description": "This should not be created."
+}
+
+### 3. Create an "Artifact" Item with the same name (SUCCESS)
+# Attempts to create an item named "Gryphon" but in a different category, "Artifacts".
+# This must succeed, proving our uniqueness rule is correctly scoped.
+POST http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Gryphon",
+  "category": "Artifacts",
+  "description": "A legendary amulet carved in the shape of a gryphon, said to grant courage."
+}
+
+### 4. Get all Catalogue Items in a Project (SUCCESS)
+# Retrieves a list of all items for the specified project.
+# The response should contain two items: the "Creatures" Gryphon and the "Artifacts" Gryphon.
+GET http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+
+
+### 5. Update an existing Item (SUCCESS)
+# Updates the details of a specific item.
+# You must get the item's ID from the response of request #1 or #4.
+PUT http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue/<PASTE_ITEM_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>
+Content-Type: application/json
+
+{
+  "name": "Golden Gryphon",
+  "category": "Creatures",
+  "description": "A rare and majestic beast with golden plumage, native to the Sunstone Peaks."
+}
+
+### 6. Delete an Item (SUCCESS)
+# Deletes a specific item from a project.
+# The response should be a 204 No Content status code.
+DELETE http://localhost:3000/projects/<PASTE_PROJECT_ID_HERE>/catalogue/<PASTE_ITEM_ID_HERE>
+Authorization: Bearer <PASTE_YOUR_TOKEN_HERE>

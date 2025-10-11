@@ -25,6 +25,7 @@ import {
   WritingEntry,
   Era,
   TimelineEvent,
+  CatalogueItem,
 } from 'aetherquill-common';
 import { CreateCharacterDto } from './dto/create-character.dto';
 import { UpdateCharacterDto } from './dto/update-character.dto';
@@ -38,6 +39,8 @@ import { ReorderErasDto } from './dto/reorder-eras.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ReorderEventsDto } from './dto/reorder-events.dto';
+import { CreateCatalogueItemDto } from './dto/create-catalogue-item.dto';
+import { UpdateCatalogueItemDto } from './dto/update-catalogue-item.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -1105,5 +1108,184 @@ export class ProjectsService {
 
     // Return the complete timeline for the project, allowing the frontend to easily update its state.
     return project.timeline;
+  }
+
+  // =============================================================================
+  // CATALOGUE ITEMS SERVICE METHODS
+  // =============================================================================
+
+  /**
+   * Creates a new Catalogue Item and adds it to a specified project.
+   * Enforces that the item name is unique within its category for the project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param createCatalogueItemDto The data for the new item.
+   * @param user The authenticated user performing the action.
+   * @returns The newly created Catalogue Item object.
+   */
+  async createCatalogueItem(
+    projectId: string,
+    createCatalogueItemDto: CreateCatalogueItemDto,
+    user: UserDocument,
+  ): Promise<CatalogueItem> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to add an item to this project.',
+      );
+    }
+
+    // Uniqueness Validation: Check for an item with the same name in the same category.
+    const existingItem = project.catalogue.find(
+      (item) =>
+        item.category === createCatalogueItemDto.category &&
+        item.name === createCatalogueItemDto.name,
+    );
+    if (existingItem) {
+      throw new ConflictException(
+        `An item named "${createCatalogueItemDto.name}" already exists in the "${createCatalogueItemDto.category}" category.`,
+      );
+    }
+
+    const newItem: CatalogueItem = {
+      id: new mongoose.Types.ObjectId().toHexString(),
+      ...createCatalogueItemDto,
+      // Initialize linking fields.
+      linkedCharacterIds: [],
+      linkedWorldId: null,
+      linkedEventIds: [],
+      linkedWritingIds: [],
+    };
+
+    project.catalogue.push(newItem);
+    await project.save();
+
+    return newItem;
+  }
+
+  /**
+   * Retrieves all Catalogue Items within a specific project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param user The authenticated user performing the action.
+   * @returns An array of Catalogue Item objects.
+   */
+  async getCatalogueInProject(
+    projectId: string,
+    user: UserDocument,
+  ): Promise<CatalogueItem[]> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to view the catalogue of this project.',
+      );
+    }
+
+    return project.catalogue;
+  }
+
+  /**
+   * Updates an existing Catalogue Item within a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param itemId The identifier of the item to update.
+   * @param updateCatalogueItemDto The data containing the updates.
+   * @param user The authenticated user performing the action.
+   * @returns The updated Catalogue Item object.
+   */
+  async updateCatalogueItem(
+    projectId: string,
+    itemId: string,
+    updateCatalogueItemDto: UpdateCatalogueItemDto,
+    user: UserDocument,
+  ): Promise<CatalogueItem> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const itemIndex = project.catalogue.findIndex((item) => item.id === itemId);
+    if (itemIndex === -1) {
+      throw new NotFoundException(
+        `Catalogue Item with ID "${itemId}" not found in this project.`,
+      );
+    }
+
+    // Uniqueness Validation: If name or category is changed, check for conflicts.
+    const originalItem = project.catalogue[itemIndex];
+    if (
+      updateCatalogueItemDto.name !== originalItem.name ||
+      updateCatalogueItemDto.category !== originalItem.category
+    ) {
+      const existingItem = project.catalogue.find(
+        (item) =>
+          item.id !== itemId && // Exclude the item we are currently editing
+          item.category === updateCatalogueItemDto.category &&
+          item.name === updateCatalogueItemDto.name,
+      );
+      if (existingItem) {
+        throw new ConflictException(
+          `An item named "${updateCatalogueItemDto.name}" already exists in the "${updateCatalogueItemDto.category}" category.`,
+        );
+      }
+    }
+
+    const updatedItem: CatalogueItem = {
+      ...originalItem,
+      ...updateCatalogueItemDto,
+      id: itemId,
+    };
+
+    project.catalogue[itemIndex] = updatedItem;
+    project.markModified('catalogue');
+    await project.save();
+
+    return updatedItem;
+  }
+
+  /**
+   * Deletes a Catalogue Item from a project.
+   *
+   * @param projectId The identifier of the target project.
+   * @param itemId The identifier of the item to delete.
+   * @param user The authenticated user performing the action.
+   */
+  async deleteCatalogueItem(
+    projectId: string,
+    itemId: string,
+    user: UserDocument,
+  ): Promise<void> {
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException(`Project with ID "${projectId}" not found.`);
+    }
+    if (project.owner.toString() !== user._id.toString()) {
+      throw new ForbiddenException(
+        'You do not have permission to modify this project.',
+      );
+    }
+
+    const initialLength = project.catalogue.length;
+    project.catalogue = project.catalogue.filter((item) => item.id !== itemId);
+
+    if (project.catalogue.length === initialLength) {
+      throw new NotFoundException(
+        `Catalogue Item with ID "${itemId}" not found in this project.`,
+      );
+    }
+
+    project.markModified('catalogue');
+    await project.save();
   }
 }

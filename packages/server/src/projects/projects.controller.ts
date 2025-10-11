@@ -35,6 +35,8 @@ import { ReorderErasDto } from './dto/reorder-eras.dto';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { ReorderEventsDto } from './dto/reorder-events.dto';
+import { CreateCatalogueItemDto } from './dto/create-catalogue-item.dto';
+import { UpdateCatalogueItemDto } from './dto/update-catalogue-item.dto';
 
 @Controller('projects')
 @UseGuards(AuthGuard()) // Apply the default JWT AuthGuard to all routes in this controller
@@ -464,5 +466,71 @@ export class ProjectsController {
       reorderEventsDto,
       user,
     );
+  }
+
+  // =============================================================================
+  // CATALOGUE ENDPOINTS
+  // =============================================================================
+
+  /**
+   * Defines the endpoint for creating a new Catalogue Item within a project.
+   * @route POST /projects/:projectId/catalogue
+   */
+  @Post(':projectId/catalogue')
+  createCatalogueItem(
+    @Param('projectId') projectId: string,
+    @Body() createCatalogueItemDto: CreateCatalogueItemDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.createCatalogueItem(
+      projectId,
+      createCatalogueItemDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for retrieving all Catalogue Items in a project.
+   * @route GET /projects/:projectId/catalogue
+   */
+  @Get(':projectId/catalogue')
+  getCatalogueInProject(
+    @Param('projectId') projectId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.getCatalogueInProject(projectId, user);
+  }
+
+  /**
+   * Defines the endpoint for updating an existing Catalogue Item.
+   * @route PUT /projects/:projectId/catalogue/:itemId
+   */
+  @Put(':projectId/catalogue/:itemId')
+  updateCatalogueItem(
+    @Param('projectId') projectId: string,
+    @Param('itemId') itemId: string,
+    @Body() updateCatalogueItemDto: UpdateCatalogueItemDto,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.updateCatalogueItem(
+      projectId,
+      itemId,
+      updateCatalogueItemDto,
+      user,
+    );
+  }
+
+  /**
+   * Defines the endpoint for deleting a Catalogue Item from a project.
+   * @route DELETE /projects/:projectId/catalogue/:itemId
+   */
+  @Delete(':projectId/catalogue/:itemId')
+  @HttpCode(204)
+  deleteCatalogueItem(
+    @Param('projectId') projectId: string,
+    @Param('itemId') itemId: string,
+    @GetUser() user: UserDocument,
+  ) {
+    return this.projectsService.deleteCatalogueItem(projectId, itemId, user);
   }
 }
