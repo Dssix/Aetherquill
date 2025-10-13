@@ -11,9 +11,19 @@ import {
     type CatalogueItem,
 } from 'aetherquill-common';
 import { saveUserData } from '../utils/storage.ts';
+import { loginUser } from '../api/auth';
+import { AxiosError } from 'axios';
+import { setAuthToken } from '../api/token';
+import { getUserData } from '../api/user';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';
+
+// Login Credentials type
+export interface LoginCredentials {
+    username: string;
+    password: string;
+}
 
 // This is the blueprint for our entire application's state.
 interface AppState {
@@ -21,9 +31,11 @@ interface AppState {
     userData: UserData | null; // The full data object for the logged-in user.
     currentProjectId: string | null;
     theme: Theme;
+    isLoading: boolean; // To track when an API call is in progress
+    error: string | null; // To store any error messages from the API
 
     // Login Action
-    login: (username: string, userData: UserData) => void;
+    login: (credentials: LoginCredentials) => Promise<void>; // It now accepts credentials and returns a Promise
     logout: () => void;
 
     // Theme Toggle
@@ -76,6 +88,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     currentUser: null,
     userData: null,
     currentProjectId: null,
+    isLoading: false,
+    error: null,
 
     // Initialize the theme state
     theme: (localStorage.getItem('aetherquill__theme') as Theme) || 'light',
@@ -83,24 +97,59 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Login Actions
     // --- Session Actions ---
-    login: (username, userData) => {
-        localStorage.setItem('aetherquill__current_user', username);
-        const lastProjectId = localStorage.getItem('aetherquill__last_project');
-        const isValidProject = lastProjectId && userData.projects[lastProjectId];
-        set({
-            currentUser: username,
-            userData: userData,
-            currentProjectId: isValidProject ? lastProjectId : null, // Always reset the current project on a new login
-        });
+    login: async (credentials) => {
+        try {
+            set({ isLoading: true, error: null });
+            // --- ACT I: AUTHENTICATION ---
+            // First, we authenticate and get the signet ring (token).
+            const loginResponse = await loginUser(credentials);
+            setAuthToken(loginResponse.accessToken); // Store the ring in our secure box.
+
+            // --- ACT II: DATA FETCHING ---
+            // Now that we have the ring, our messenger is automatically authenticated.
+            // We immediately fetch the user's entire world.
+            const userDataPayload = await getUserData();
+
+            // --- SUCCESS ---
+            // We have the token AND all the user's data. The login is fully complete.
+            set({
+                currentUser: userDataPayload.username,
+                userData: userDataPayload, // Set the REAL data from the API.
+                isLoading: false,
+            });
+
+            localStorage.setItem('aetherquill__current_user', userDataPayload.username);
+        } catch (err) {
+            // We initialize a default error message.
+            let errorMessage = 'An unexpected login error occurred.';
+            setAuthToken(null);
+
+            // Now, we check if the error is an AxiosError. This is our type guard.
+            if (err instanceof AxiosError) {
+                // If it is, we know it has a 'response' property.
+                // We can safely access err.response.data to get the message from our backend.
+                // The optional chaining (?.) provides an extra layer of safety.
+                errorMessage =
+                    err.response?.data?.message || 'An error occurred during login.';
+            }
+
+            // Update the store with the determined error message.
+            set({ error: errorMessage, isLoading: false });
+
+            // Re-throw the error so the UI component can react to the failure.
+            throw new Error(errorMessage);
+        }
     },
     logout: () => {
         localStorage.removeItem('aetherquill__current_user');
+        // In the future, we will also remove the JWT here.
         set({
             currentUser: null,
             userData: null,
-            currentProjectId: null
+            currentProjectId: null,
         });
     },
+
 
 
     // Theme Action

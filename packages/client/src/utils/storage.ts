@@ -1,3 +1,11 @@
+// packages/client/src/utils/storage.ts
+
+/**
+ * @file This file contains all the utility functions for interacting with localStorage.
+ * @description This is the heart of the v1.0 "local-first" persistence system.
+ * NOTE: Most of this file will be deleted as we migrate to the API.
+ */
+
 import { type UserData } from 'aetherquill-common';
 
 const USERS_LIST_KEY = 'aetherquill__users';
