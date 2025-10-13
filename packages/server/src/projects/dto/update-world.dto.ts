@@ -3,7 +3,7 @@
 /**
  * Data Transfer Object (DTO) for updating an existing world.
  */
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, IsOptional } from 'class-validator';
 
 export class UpdateWorldDto {
   @IsString()
@@ -18,4 +18,19 @@ export class UpdateWorldDto {
 
   @IsString()
   description: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
 }

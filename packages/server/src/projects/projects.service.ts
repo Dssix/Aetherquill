@@ -388,13 +388,21 @@ export class ProjectsService {
       );
     }
 
+    // --- THE CORRECTED ASSEMBLY LOGIC ---
     const newWorld: World = {
+      // 1. Assign properties that are guaranteed to be in the DTO.
       id: new mongoose.Types.ObjectId().toHexString(),
-      ...createWorldDto,
-      // Initialize linking fields to ensure data consistency.
-      linkedCharacterIds: [],
-      linkedWritingIds: [],
-      linkedEventIds: [],
+      name: createWorldDto.name,
+      theme: createWorldDto.theme,
+      setting: createWorldDto.setting,
+      description: createWorldDto.description,
+
+      // 2. Intelligently provide defaults for optional linking arrays.
+      //    Use the nullish coalescing operator (??) to default to an empty array
+      //    only if the property is null or undefined in the DTO.
+      linkedCharacterIds: createWorldDto.linkedCharacterIds ?? [],
+      linkedWritingIds: createWorldDto.linkedWritingIds ?? [],
+      linkedEventIds: createWorldDto.linkedEventIds ?? [],
     };
 
     project.worlds.push(newWorld);

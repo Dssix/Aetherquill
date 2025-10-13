@@ -19,8 +19,18 @@ import {
     updateProject as updateProjectApi, // Use an alias to avoid name clash
     deleteProject as deleteProjectApi, // Use an alias
 } from '../api/projects';
+import {
+    createCharacter,
+    updateCharacter as updateCharacterApi,
+    deleteCharacter as deleteCharacterApi,
+} from '../api/characters';
 import type { AppAxiosError } from '../api/error';
 import { isAxiosError } from 'axios';
+import {
+    createWorld,
+    updateWorld as updateWorldApi,
+    deleteWorld as deleteWorldApi,
+} from '../api/worlds';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';
@@ -54,9 +64,9 @@ interface AppState {
     deleteProject: (projectId: string) => Promise<void>; // Now async
 
     // Character Action
-    addCharacter: (characterData: Omit<Character, 'id'>) => void;
-    updateCharacter: (characterId: string, characterData: Omit<Character, 'id'>) => void;
-    deleteCharacter: (characterId: string) => void;
+    addCharacter: (characterData: Omit<Character, 'id'>) => Promise<void>; // Now async
+    updateCharacter: (characterId: string, characterData: Omit<Character, 'id'>) => Promise<void>; // Now async
+    deleteCharacter: (characterId: string) => Promise<void>; // Now async
 
     // Timeline Action
     addTimelineEvent: (eventData: Omit<TimelineEvent, 'id' | 'order'>) => void;
@@ -71,9 +81,9 @@ interface AppState {
     reorderEventsInEra: (eraId: string, eventIds: string[]) => void;
 
     // World Action
-    addWorld: (worldData: Omit<World, 'id'>) => void;
-    updateWorld: (worldId: string, worldData: Partial<Omit<World, 'id'>>) => void;
-    deleteWorld: (worldId: string) => void;
+    addWorld: (worldData: Omit<World, 'id'>) => Promise<void>; // Now async
+    updateWorld: (worldId: string, worldData: Partial<Omit<World, 'id'>>) => Promise<void>; // Now async
+    deleteWorld: (worldId: string) => Promise<void>; // Now async
 
     // Writing Page Action
     addWriting: (writingData: Omit<WritingEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
@@ -276,52 +286,110 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 
     // Character Actions
-    addCharacter: (characterData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+    addCharacter: async (characterData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) {
+            toast.error('No active project selected.');
+            return;
+        }
 
-        const newCharacter: Character = { id: `char_${Date.now()}`, ...characterData };
+        try {
+            set({ isLoading: true, error: null });
+            const newCharacter = await createCharacter(currentProjectId, characterData);
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].characters.push(newCharacter);
-            return { userData: newUserData };
-        });
-        toast.success(`Soul "${characterData.name}" has been forged.`);
-    },
-    updateCharacter: (characterId, characterData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].characters.push(newCharacter);
+                return { userData: newUserData };
+            });
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectCharacters = newUserData.projects[currentProjectId].characters;
-            const charIndex = projectCharacters.findIndex((c: Character) => c.id === characterId);
-
-            if (charIndex !== -1) {
-                projectCharacters[charIndex] = { ...projectCharacters[charIndex], ...characterData };
+            toast.success(`Soul "${newCharacter.name}" has been forged.`);
+        } catch (err) {
+            let errorMessage = 'Failed to create character.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
-        toast.success(`Soul "${characterData.name}" updated.`);
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteCharacter: (characterId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+
+    updateCharacter: async (characterId, characterData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        try {
+            set({ isLoading: true, error: null });
+            const updatedCharacter = await updateCharacterApi(
+                currentProjectId,
+                characterId,
+                characterData,
+            );
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectCharacters = newUserData.projects[currentProjectId].characters;
+                const charIndex = projectCharacters.findIndex((c: Character) => c.id === characterId);
+
+                if (charIndex !== -1) {
+                    projectCharacters[charIndex] = updatedCharacter;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Soul "${updatedCharacter.name}" updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update character.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    deleteCharacter: async (characterId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
         const charName = get().userData?.projects[currentProjectId]?.characters.find(c => c.id === characterId)?.name;
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].characters =
-                newUserData.projects[currentProjectId].characters.filter((c: Character) => c.id !== characterId);
-            return { userData: newUserData };
-        });
-        if (charName) {
-            toast.success(`Soul "${charName}" has been banished.`);
+        try {
+            set({ isLoading: true, error: null });
+            await deleteCharacterApi(currentProjectId, characterId);
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].characters =
+                    newUserData.projects[currentProjectId].characters.filter((c: Character) => c.id !== characterId);
+                return { userData: newUserData };
+            });
+
+            if (charName) {
+                toast.success(`Soul "${charName}" has been banished.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete character.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
     },
 
@@ -455,52 +523,117 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 
     // World Action
-    addWorld: (worldData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+    addWorld: async (worldData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) {
+            toast.error('No active project selected.');
+            return;
+        }
 
-        const newWorld: World = { id: `world_${Date.now()}`, ...worldData };
+        try {
+            set({ isLoading: true, error: null });
+            const newWorld = await createWorld(currentProjectId, worldData);
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].worlds.push(newWorld);
-            return { userData: newUserData };
-        });
-        toast.success(`Realm "${worldData.name}" has been forged.`);
-    },
-    updateWorld: (worldId, worldData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].worlds.push(newWorld);
+                return { userData: newUserData };
+            });
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectWorlds = newUserData.projects[currentProjectId].worlds;
-            const worldIndex = projectWorlds.findIndex((w: World) => w.id === worldId);
-
-            if (worldIndex !== -1) {
-                projectWorlds[worldIndex] = { ...projectWorlds[worldIndex], ...worldData };
+            toast.success(`Realm "${newWorld.name}" has been forged.`);
+        } catch (err) {
+            let errorMessage = 'Failed to create world.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
-        toast.success(`Realm "${worldData.name}" has been updated.`);
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteWorld: (worldId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+
+    updateWorld: async (worldId, worldData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        try {
+            set({ isLoading: true, error: null });
+            // Note: The API expects the full world object for an update.
+            // We get the original world to merge with the partial update data.
+            const originalWorld = get().userData?.projects[currentProjectId]?.worlds.find(w => w.id === worldId);
+            if (!originalWorld) throw new Error("World not found");
+
+            const fullUpdateData = { ...originalWorld, ...worldData };
+
+            const updatedWorld = await updateWorldApi(
+                currentProjectId,
+                worldId,
+                fullUpdateData,
+            );
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectWorlds = newUserData.projects[currentProjectId].worlds;
+                const worldIndex = projectWorlds.findIndex((w: World) => w.id === worldId);
+
+                if (worldIndex !== -1) {
+                    projectWorlds[worldIndex] = updatedWorld;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Realm "${updatedWorld.name}" has been updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update world.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    deleteWorld: async (worldId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
         const worldName = get().userData?.projects[currentProjectId]?.worlds.find(w => w.id === worldId)?.name;
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].worlds =
-                newUserData.projects[currentProjectId].worlds.filter((w: World) => w.id !== worldId);
-            return { userData: newUserData };
-        });
-        if (worldName) {
-            toast.success(`Realm "${worldName}" has been unmade.`);
+        try {
+            set({ isLoading: true, error: null });
+            await deleteWorldApi(currentProjectId, worldId);
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].worlds =
+                    newUserData.projects[currentProjectId].worlds.filter((w: World) => w.id !== worldId);
+                return { userData: newUserData };
+            });
+
+            if (worldName) {
+                toast.success(`Realm "${worldName}" has been unmade.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete world.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
     },
 

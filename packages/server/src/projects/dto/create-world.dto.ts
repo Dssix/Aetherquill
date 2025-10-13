@@ -7,7 +7,7 @@
  * that the incoming data is well-formed before it reaches the service layer.
  */
 
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsArray, IsOptional } from 'class-validator';
 
 export class CreateWorldDto {
   /**
@@ -41,4 +41,29 @@ export class CreateWorldDto {
    */
   @IsString()
   description: string;
+
+  /**
+   * An optional array of Character IDs to be linked to this world.
+   * @description Validates that if provided, it is an array of strings.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  /**
+   * An optional array of Writing Entry IDs to be linked to this world.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
+
+  /**
+   * An optional array of Timeline Event IDs to be linked to this world.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
 }
