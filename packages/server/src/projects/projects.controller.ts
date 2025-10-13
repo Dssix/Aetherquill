@@ -55,12 +55,18 @@ export class ProjectsController {
    * @returns The newly created project object.
    */
   @Post()
-  createProject(
+  async createProject(
+    // 1. Make the method async
     @Body() createProjectDto: CreateProjectDto,
     @GetUser() user: UserDocument,
   ) {
-    // Delegate the creation logic to the service layer.
-    return this.projectsService.createProject(createProjectDto, user);
+    // 2. Await the result from the service
+    const newProjectDocument = await this.projectsService.createProject(
+      createProjectDto,
+      user,
+    );
+    // 3. Manually call the transformation before returning
+    return this.projectsService.toProjectData(newProjectDocument);
   }
 
   /**
@@ -98,16 +104,20 @@ export class ProjectsController {
    * @returns The complete, updated project object.
    */
   @Put(':projectId')
-  updateProject(
+  async updateProject(
+    // 1. Make the method async
     @Param('projectId') projectId: string,
     @Body() updateProjectDto: UpdateProjectDto,
     @GetUser() user: UserDocument,
   ) {
-    return this.projectsService.updateProject(
+    // 2. Await the result
+    const updatedProjectDocument = await this.projectsService.updateProject(
       projectId,
       updateProjectDto,
       user,
     );
+    // 3. Transform the result before returning
+    return this.projectsService.toProjectData(updatedProjectDocument);
   }
 
   /**

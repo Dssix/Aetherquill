@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import toast from 'react-hot-toast';
 import {
     type UserData,
-    type ProjectData,
     type Character,
     type TimelineEvent,
     type Era,
@@ -15,6 +14,13 @@ import { loginUser } from '../api/auth';
 import { AxiosError } from 'axios';
 import { setAuthToken } from '../api/token';
 import { getUserData } from '../api/user';
+import {
+    createProject,
+    updateProject as updateProjectApi, // Use an alias to avoid name clash
+    deleteProject as deleteProjectApi, // Use an alias
+} from '../api/projects';
+import type { AppAxiosError } from '../api/error';
+import { isAxiosError } from 'axios';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';
@@ -43,9 +49,9 @@ interface AppState {
 
     // Project Action
     setCurrentProject: (projectId: string) => void;
-    addProject: (projectData: ProjectData) => void;
-    updateProject: (projectId: string, newName: string) => void;
-    deleteProject: (projectId: string) => void;
+    addProject: (projectData: { name: string }) => Promise<void>; // Now async
+    updateProject: (projectId: string, newName: string) => Promise<void>; // Now async
+    deleteProject: (projectId: string) => Promise<void>; // Now async
 
     // Character Action
     addCharacter: (characterData: Omit<Character, 'id'>) => void;
@@ -166,66 +172,105 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     // Project Actions
     setCurrentProject: (projectId) => {
+        // This action remains synchronous as it only affects local UI state.
+        localStorage.setItem('aetherquill__last_project', projectId);
         set({ currentProjectId: projectId });
     },
     // --- Data Modification Actions ---
-    addProject: (projectData) => {
-        // We use 'set' and receive the current 'state'.
-        set(state => {
-            // Safety checks: ensure a user is logged in and their data is loaded.
-            if (!state.currentUser || !state.userData) {
-                return state; // Return the current state unmodified if checks fail.
+    addProject: async (projectData) => {
+        try {
+            set({ isLoading: true, error: null });
+            // The API now returns a perfect ProjectData object.
+            const newProject = await createProject(projectData);
+
+            // Now, newProject.projectId is guaranteed to be the correct string ID.
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData: UserData = {
+                    ...state.userData,
+                    projects: {
+                        ...state.userData.projects,
+                        [newProject.projectId]: newProject, // This now works perfectly.
+                    },
+                };
+                return { userData: newUserData };
+            });
+
+            toast.success(`Chronicle "${newProject.name}" created!`);
+        } catch (err) { // 1. Remove the ': any'
+            // 2. Use the isAxiosError type guard to check the error type
+            let errorMessage = 'Failed to create project.';
+            if (isAxiosError(err)) {
+                // Now TypeScript knows err is an AxiosError and has a .response property
+                const appErr = err as AppAxiosError; // Cast to our specific type
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-
-            // This is the correct, safe, and immutable way to add a new project.
-            const newUserData: UserData = {
-                ...state.userData, // Copy all existing user data
-                projects: {
-                    ...state.userData.projects, // Copy all existing projects
-                    [projectData.projectId]: projectData, // Add the new project
-                },
-            };
-
-            // Return the new state.
-            return { userData: newUserData };
-        });
-        toast.success(`Chronicle "${projectData.name}" created!`);
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    updateProject: (projectId, newName) => {
-        set(state => {
-            if (!state.currentUser || !state.userData) return state;
 
-            // Create a deep, immutable copy to safely modify.
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
+    updateProject: async (projectId, newName) => {
+        try {
+            set({ isLoading: true, error: null });
+            const updatedProject = await updateProjectApi(projectId, { name: newName });
 
-            // Check if the project exists before trying to update it.
-            if (newUserData.projects[projectId]) {
-                newUserData.projects[projectId].name = newName;
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[projectId] = updatedProject;
+                return { userData: newUserData };
+            });
+
+            toast.success(`Chronicle renamed to "${newName}".`);
+        } catch (err) { // Remove ': any'
+            let errorMessage = 'Failed to rename project.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
-        toast.success(`Chronicle renamed to "${newName}".`);
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteProject: (projectId) => {
+
+    deleteProject: async (projectId) => {
         const projectName = get().userData?.projects[projectId]?.name;
-        set(state => {
-            if (!state.currentUser || !state.userData) return state;
+        try {
+            set({ isLoading: true, error: null });
+            await deleteProjectApi(projectId);
 
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                delete newUserData.projects[projectId];
+                const newCurrentProjectId = state.currentProjectId === projectId ? null : state.currentProjectId;
+                if (newCurrentProjectId === null) {
+                    localStorage.removeItem('aetherquill__last_project');
+                }
+                return { userData: newUserData, currentProjectId: newCurrentProjectId };
+            });
 
-            // Delete the project from the projects object.
-            delete newUserData.projects[projectId];
-
-            // If the deleted project was the currently active one, deselect it.
-            const newCurrentProjectId = state.currentProjectId === projectId ? null : state.currentProjectId;
-            if (newCurrentProjectId === null) {
-                localStorage.removeItem('aetherquill__last_project');
+            if (projectName) {
+                toast.success(`Chronicle "${projectName}" consigned to the void.`);
             }
-
-            return { userData: newUserData, currentProjectId: newCurrentProjectId };
-        });
-        if (projectName) {
-            toast.success(`Chronicle "${projectName}" consigned to the void.`);
+        } catch (err) { // Remove ': any'
+            let errorMessage = 'Failed to delete project.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
     },
 

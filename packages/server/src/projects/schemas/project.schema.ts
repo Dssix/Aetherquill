@@ -28,7 +28,7 @@ export class Project {
    * The unique identifier for the project.
    * This is the native MongoDB _id, and we don't need a separate @Prop for it.
    */
-  _id: mongoose.Schema.Types.ObjectId;
+  _id: Types.ObjectId;
 
   /**
    * The name of the project, e.g., "The Sunstone Chronicle".

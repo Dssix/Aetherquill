@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { type ProjectData } from 'aetherquill-common';
 import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';
 
@@ -72,7 +71,7 @@ const RenameProjectModal = ({ currentName, onSave, onClose }: { currentName: str
 
 const DashboardPage: React.FC = () => {
     // --- Step 1: Summon the necessary data and actions from our store ---
-    const { currentUser, userData, setCurrentProject, addProject, updateProject, deleteProject, saveCurrentUser } = useAppStore();
+    const { currentUser, userData, setCurrentProject, addProject, updateProject, deleteProject } = useAppStore();
     const navigate = useNavigate();
 // This single state now controls the "Create Project" modal.
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -90,36 +89,38 @@ const DashboardPage: React.FC = () => {
         navigate('/project'); // Redirect to the main application view.
     };
 
-    const handleCreateProject = (name: string) => {
-        if (!currentUser) return;
-
-        const newProject: ProjectData = {
-            projectId: `proj_${Date.now()}`,
-            name,
-            eras: [],
-            timeline: [],
-            characters: [],
-            worlds: [],
-            writings: [],
-            catalogue: []
-        };
-
-        addProject(newProject);
-        // Important: After modifying data, we must explicitly save it.
-        saveCurrentUser();
+    const handleCreateProject = async (name: string) => {
+        try {
+            // Call the new async store action, passing only the required data.
+            await addProject({ name });
+            // Close the modal on success.
+            setIsCreateModalOpen(false);
+        } catch (error) {
+            // The store already shows an error toast, so we just log it for debugging.
+            console.error("Failed to create project:", error);
+        }
     };
 
-    const handleRenameProject = (newName: string) => {
+    const handleRenameProject = async (newName: string) => {
         if (!projectToRename) return;
-        updateProject(projectToRename.id, newName);
-        saveCurrentUser(); // Persist the change
-        setProjectToRename(null); // Close the modal
+        try {
+            // Call the new async store action.
+            await updateProject(projectToRename.id, newName);
+            // Close the modal only on success.
+            setProjectToRename(null);
+        } catch (error) {
+            console.error("Failed to rename project:", error);
+        }
     };
 
-    const handleDeleteProject = (projectId: string, projectName: string) => {
+    const handleDeleteProject = async (projectId: string, projectName: string) => {
         if (window.confirm(`Are you sure you wish to consign the chronicle "${projectName}" to the flames? This cannot be undone.`)) {
-            deleteProject(projectId);
-            saveCurrentUser(); // Persist the change
+            try {
+                // Call the new async store action.
+                await deleteProject(projectId);
+            } catch (error) {
+                console.error("Failed to delete project:", error);
+            }
         }
     };
 

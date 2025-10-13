@@ -20,6 +20,7 @@ import { UserDocument } from '../auth/schemas/user.schema';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import mongoose from 'mongoose';
 import {
+  ProjectData,
   Character,
   World,
   WritingEntry,
@@ -84,6 +85,28 @@ export class ProjectsService {
 
     // Save the new project to the database.
     return newProject.save();
+  }
+
+  /**
+   * A private helper to transform a Mongoose Project document into the
+   * clean ProjectData object expected by the frontend.
+   * @param project The Mongoose document to transform.
+   * @returns A frontend-safe ProjectData object.
+   */
+  public toProjectData(project: ProjectDocument): ProjectData {
+    // Explicitly access the ObjectId's reliable toString method.
+    // This is a safe and correct operation.
+    const projectId = project._id.toString();
+    return {
+      projectId: projectId,
+      name: project.name,
+      eras: project.eras,
+      timeline: project.timeline,
+      characters: project.characters,
+      worlds: project.worlds,
+      writings: project.writings,
+      catalogue: project.catalogue,
+    };
   }
 
   /**
