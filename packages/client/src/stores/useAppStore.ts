@@ -31,6 +31,23 @@ import {
     updateWorld as updateWorldApi,
     deleteWorld as deleteWorldApi,
 } from '../api/worlds';
+import {
+    createWriting,
+    updateWriting as updateWritingApi,
+    deleteWriting as deleteWritingApi,
+} from '../api/writings';
+import {
+    createEra,
+    updateEra as updateEraApi,
+    deleteEra as deleteEraApi,
+    reorderEras as reorderErasApi,
+} from '../api/eras';
+import {
+    createEvent,
+    updateEvent as updateEventApi,
+    deleteEvent as deleteEventApi,
+    reorderEventsInEra as reorderEventsInEraApi,
+} from '../api/timeline';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';
@@ -69,16 +86,16 @@ interface AppState {
     deleteCharacter: (characterId: string) => Promise<void>; // Now async
 
     // Timeline Action
-    addTimelineEvent: (eventData: Omit<TimelineEvent, 'id' | 'order'>) => void;
-    updateTimelineEvent: (eventId: string, eventData: Partial<Omit<TimelineEvent, 'id'>>) => void;
-    deleteTimelineEvent: (eventId: string) => void;
+    addTimelineEvent: (eventData: Omit<TimelineEvent, 'id' | 'order'>) => Promise<void>; // Now async
+    updateTimelineEvent: (eventId: string, eventData: Partial<Omit<TimelineEvent, 'id'>>) => Promise<void>; // Now async
+    deleteTimelineEvent: (eventId: string) => Promise<void>; // Now async
 
     // Era Action
-    addEra: (eraData: Omit<Era, 'id' | 'order'>) => void;
-    updateEra: (eraId: string, eraData: Partial<Omit<Era, 'id'>>) => void;
-    deleteEra: (eraId: string) => void;
-    reorderEras: (eraIds: string[]) => void;
-    reorderEventsInEra: (eraId: string, eventIds: string[]) => void;
+    addEra: (eraData: Omit<Era, 'id' | 'order'>) => Promise<void>; // Now async
+    updateEra: (eraId: string, eraData: Partial<Omit<Era, 'id'>>) => Promise<void>; // Now async
+    deleteEra: (eraId: string) => Promise<void>; // Now async
+    reorderEras: (eraIds: string[]) => Promise<void>; // Now async
+    reorderEventsInEra: (eraId: string, eventIds: string[]) => Promise<void>; // Now async
 
     // World Action
     addWorld: (worldData: Omit<World, 'id'>) => Promise<void>; // Now async
@@ -86,9 +103,9 @@ interface AppState {
     deleteWorld: (worldId: string) => Promise<void>; // Now async
 
     // Writing Page Action
-    addWriting: (writingData: Omit<WritingEntry, 'id' | 'createdAt' | 'updatedAt'>) => void;
-    updateWriting: (writingId: string, writingData: Partial<Omit<WritingEntry, 'id'>>) => void;
-    deleteWriting: (writingId: string) => void;
+    addWriting: (writingData: Omit<WritingEntry, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>; // Now async
+    updateWriting: (writingId: string, writingData: Partial<Omit<WritingEntry, 'id'>>) => Promise<void>; // Now async
+    deleteWriting: (writingId: string) => Promise<void>; // Now async
 
     // Catalogue
     addCatalogueItem: (itemData: Omit<CatalogueItem, 'id'>) => void;
@@ -395,130 +412,288 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 
     // TimeLine Actions
-    addTimelineEvent: (eventData) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
+    addTimelineEvent: async (eventData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
+        try {
+            set({ isLoading: true, error: null });
+            // The eraId is part of the eventData object.
+            const newEvent = await createEvent(
+                currentProjectId,
+                eventData.eraId,
+                eventData,
+            );
 
-            // Automatically set the order to be the last in its era
-            const eventsInEra = project.timeline.filter((e: TimelineEvent) => e.eraId === eventData.eraId);
-            const newOrder = eventsInEra.length > 0 ? Math.max(...eventsInEra.map((e: TimelineEvent) => e.order)) + 1 : 1;
-
-            const newEvent: TimelineEvent = { id: `evt_${Date.now()}`, ...eventData, order: newOrder };
-            project.timeline.push(newEvent);
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].timeline.push(newEvent);
+                return { userData: newUserData };
+            });
 
             toast.success(`Event "${newEvent.title}" added to the chronicle.`);
-            return { userData: newUserData };
-        });
-    },
-    updateTimelineEvent: (eventId, eventData) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
-            const eventIndex = project.timeline.findIndex((e: TimelineEvent) => e.id === eventId);
-
-            if (eventIndex !== -1) {
-                project.timeline[eventIndex] = { ...project.timeline[eventIndex], ...eventData };
-                toast.success(`Event "${project.timeline[eventIndex].title}" updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to add event.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteTimelineEvent: (eventId) => {
-        const eventTitle = get().userData?.projects[get().currentProjectId!]?.timeline.find(e => e.id === eventId)?.title;
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
-            project.timeline = project.timeline.filter((e: TimelineEvent) => e.id !== eventId);
 
-            if (eventTitle) toast.success(`Event "${eventTitle}" erased from the chronicle.`);
-            return { userData: newUserData };
-        });
+    updateTimelineEvent: async (eventId, eventData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        try {
+            set({ isLoading: true, error: null });
+            const updatedEvent = await updateEventApi(
+                currentProjectId,
+                eventId,
+                eventData,
+            );
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectTimeline = newUserData.projects[currentProjectId].timeline;
+                const eventIndex = projectTimeline.findIndex((e: TimelineEvent) => e.id === eventId);
+
+                if (eventIndex !== -1) {
+                    projectTimeline[eventIndex] = updatedEvent;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Event "${updatedEvent.title}" updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update event.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
+
+    deleteTimelineEvent: async (eventId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        const eventTitle = get().userData?.projects[currentProjectId]?.timeline.find(e => e.id === eventId)?.title;
+
+        try {
+            set({ isLoading: true, error: null });
+            // This line sends the command to the backend.
+            await deleteEventApi(currentProjectId, eventId);
+
+            // This part updates the local state AFTER the API call succeeds.
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const project = newUserData.projects[currentProjectId];
+                project.timeline = project.timeline.filter((e: TimelineEvent) => e.id !== eventId);
+                return { userData: newUserData };
+            });
+
+            if (eventTitle) {
+                toast.success(`Event "${eventTitle}" erased from the chronicle.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete event.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
 
 
     // Era Action
-    addEra: (eraData) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
+    addEra: async (eraData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-            // Automatically set the order to be the last era
-            const newOrder = project.eras.length > 0 ? Math.max(...project.eras.map((e: Era) => e.order)) + 1 : 1;
-            const newEra: Era = { id: `era_${Date.now()}`, ...eraData, order: newOrder };
-            project.eras.push(newEra);
+        try {
+            set({ isLoading: true, error: null });
+            const newEra = await createEra(currentProjectId, eraData);
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].eras.push(newEra);
+                return { userData: newUserData };
+            });
 
             toast.success(`The "${newEra.name}" has begun.`);
-            return { userData: newUserData };
-        });
-    },
-    updateEra: (eraId, eraData) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
-            const eraIndex = project.eras.findIndex((e: Era) => e.id === eraId);
-
-            if (eraIndex !== -1) {
-                project.eras[eraIndex] = { ...project.eras[eraIndex], ...eraData };
-                toast.success(`Era "${project.eras[eraIndex].name}" has been updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to create era.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteEra: (eraId) => {
-        const eraName = get().userData?.projects[get().currentProjectId!]?.eras.find(e => e.id === eraId)?.name;
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
 
-            // Also delete all events associated with this era
-            project.timeline = project.timeline.filter((e: TimelineEvent) => e.eraId !== eraId);
-            project.eras = project.eras.filter((e: Era) => e.id !== eraId);
+    updateEra: async (eraId, eraData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-            if (eraName) toast.success(`The "${eraName}" and all its events have ended.`);
-            return { userData: newUserData };
-        });
+        try {
+            set({ isLoading: true, error: null });
+            const updatedEra = await updateEraApi(currentProjectId, eraId, eraData);
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectEras = newUserData.projects[currentProjectId].eras;
+                const eraIndex = projectEras.findIndex((e: Era) => e.id === eraId);
+
+                if (eraIndex !== -1) {
+                    projectEras[eraIndex] = updatedEra;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Era "${updatedEra.name}" has been updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update era.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    reorderEras: (eraIds) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
-            // Create a map for quick lookups
-            const eraMap = new Map(project.eras.map((e: Era) => [e.id, e]));
-            // Recreate the eras array in the new order
-            project.eras = eraIds.map(id => eraMap.get(id)!).filter(Boolean).map((era, index) => ({...era, order: index + 1}));
+
+    deleteEra: async (eraId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        const eraName = get().userData?.projects[currentProjectId]?.eras.find(e => e.id === eraId)?.name;
+
+        try {
+            set({ isLoading: true, error: null });
+            // This line sends the command to the backend.
+            await deleteEraApi(currentProjectId, eraId);
+
+            // This part updates the local state AFTER the API call succeeds.
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const project = newUserData.projects[currentProjectId];
+                // Also delete all events associated with this era, as the old logic did.
+                project.timeline = project.timeline.filter((e: TimelineEvent) => e.eraId !== eraId);
+                project.eras = project.eras.filter((e: Era) => e.id !== eraId);
+                return { userData: newUserData };
+            });
+
+            if (eraName) {
+                toast.success(`The "${eraName}" and all its events have ended.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete era.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+
+    reorderEras: async (eraIds) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        try {
+            set({ isLoading: true, error: null });
+            // The API returns the complete, newly sorted list of eras.
+            const reorderedEras = await reorderErasApi(currentProjectId, { orderedIds: eraIds });
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                // We replace the entire eras array with the authoritative new one from the server.
+                newUserData.projects[currentProjectId].eras = reorderedEras;
+                return { userData: newUserData };
+            });
 
             toast.success("Eras have been reordered.");
-            return { userData: newUserData };
-        });
+        } catch (err) {
+            let errorMessage = 'Failed to reorder eras.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    reorderEventsInEra: (eraId, eventIds) => {
-        set(state => {
-            if (!state.currentUser || !state.userData || !state.currentProjectId) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const project = newUserData.projects[state.currentProjectId];
+    reorderEventsInEra: async (eraId, eventIds) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-            // Create a map of the events being reordered for quick lookups
-            const eventMap = new Map(project.timeline.filter((e: TimelineEvent) => e.eraId === eraId).map((e: TimelineEvent) => [e.id, e]));
-            const reorderedEvents = eventIds.map(id => eventMap.get(id)!).filter(Boolean).map((event, index) => ({...event, order: index + 1}));
+        try {
+            set({ isLoading: true, error: null });
+            // The API returns the complete, newly sorted timeline for the entire project.
+            const reorderedTimeline = await reorderEventsInEraApi(currentProjectId, eraId, {
+                orderedIds: eventIds,
+            });
 
-            // Get all other events that were not part of this reordering
-            const otherEvents = project.timeline.filter((e: TimelineEvent) => e.eraId !== eraId);
-
-            // Combine them back into the main timeline array
-            project.timeline = [...otherEvents, ...reorderedEvents];
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                // We replace the entire timeline array with the authoritative new one from the server.
+                newUserData.projects[currentProjectId].timeline = reorderedTimeline;
+                return { userData: newUserData };
+            });
 
             toast.success("Events have been reordered.");
-            return { userData: newUserData };
-        });
+        } catch (err) {
+            let errorMessage = 'Failed to reorder events.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
 
 
@@ -639,64 +814,114 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 
     // Writing Page
-    addWriting: (writingData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+    addWriting: async (writingData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) {
+            toast.error('No active project selected.');
+            return;
+        }
 
-        const now = Date.now();
-        const newWriting: WritingEntry = {
-            id: `writing_${now}`,
-            ...writingData,
-            createdAt: now,
-            updatedAt: now,
-        };
+        try {
+            set({ isLoading: true, error: null });
+            const newWriting = await createWriting(currentProjectId, writingData);
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].writings.unshift(newWriting); // Add to top
-            return { userData: newUserData };
-        });
-        toast.success(`Manuscript "${writingData.title}" has been archived.`);
-    },
-    updateWriting: (writingId, writingData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                // Add the new manuscript to the top of the list for immediate visibility.
+                newUserData.projects[currentProjectId].writings.unshift(newWriting);
+                return { userData: newUserData };
+            });
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectWritings = newUserData.projects[currentProjectId].writings;
-            const writingIndex = projectWritings.findIndex((w: WritingEntry) => w.id === writingId);
-
-            if (writingIndex !== -1) {
-                projectWritings[writingIndex] = {
-                    ...projectWritings[writingIndex],
-                    ...writingData,
-                    updatedAt: Date.now(),
-                };
+            toast.success(`Manuscript "${newWriting.title}" has been archived.`);
+        } catch (err) {
+            let errorMessage = 'Failed to create manuscript.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
-        toast.success(`Manuscript "${writingData.title}" has been updated.`);
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteWriting: (writingId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+
+    updateWriting: async (writingId, writingData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
+
+        try {
+            set({ isLoading: true, error: null });
+            const updatedWriting = await updateWritingApi(
+                currentProjectId,
+                writingId,
+                writingData,
+            );
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectWritings = newUserData.projects[currentProjectId].writings;
+                const writingIndex = projectWritings.findIndex((w: WritingEntry) => w.id === writingId);
+
+                if (writingIndex !== -1) {
+                    projectWritings[writingIndex] = updatedWriting;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Manuscript "${updatedWriting.title}" has been updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update manuscript.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    deleteWriting: async (writingId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
         const writingTitle = get().userData?.projects[currentProjectId]?.writings.find(w => w.id === writingId)?.title;
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].writings =
-                newUserData.projects[currentProjectId].writings.filter((w: WritingEntry) => w.id !== writingId);
-            return { userData: newUserData };
-        });
-        if (writingTitle) {
-            toast.success(`Manuscript "${writingTitle}" consigned to the flames.`);
+        try {
+            set({ isLoading: true, error: null });
+            await deleteWritingApi(currentProjectId, writingId);
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].writings =
+                    newUserData.projects[currentProjectId].writings.filter((w: WritingEntry) => w.id !== writingId);
+                return { userData: newUserData };
+            });
+
+            if (writingTitle) {
+                toast.success(`Manuscript "${writingTitle}" consigned to the flames.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete manuscript.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
     },
+
 
 
     // Catalogue Actions

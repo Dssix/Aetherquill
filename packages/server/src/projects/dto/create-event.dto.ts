@@ -41,4 +41,21 @@ export class CreateEventDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
+
+  /**
+   * An optional array of Character IDs to be linked to this event.
+   * @description Validates that if provided, it is an array of strings.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  /**
+   * An optional array of Writing Entry IDs to be linked to this event.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
 }

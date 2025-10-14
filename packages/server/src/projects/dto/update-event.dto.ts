@@ -35,4 +35,14 @@ export class UpdateEventDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
 }

@@ -34,4 +34,28 @@ export class CreateWritingDto {
   @IsString({ each: true }) // Validates that each element in the array is a string
   @IsOptional() // The entire array is optional
   tags?: string[];
+
+  /**
+   * An optional array of Character IDs to be linked to this writing entry.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  /**
+   * An optional World ID to be linked to this writing entry.
+   * Can be a string or null.
+   */
+  @IsString()
+  @IsOptional()
+  linkedWorldId?: string | null;
+
+  /**
+   * An optional array of Timeline Event IDs to be linked to this writing entry.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
 }

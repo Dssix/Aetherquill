@@ -28,4 +28,18 @@ export class UpdateWritingDto {
   @IsString({ each: true }) // Validates that each element in the array is a string
   @IsOptional() // The entire array is optional
   tags?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  @IsString()
+  @IsOptional()
+  linkedWorldId?: string | null;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
 }

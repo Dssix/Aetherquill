@@ -527,6 +527,7 @@ export class ProjectsService {
 
   /**
    * Creates a new writing entry and adds it to a specified project.
+   *
    * @param projectId The identifier of the target project.
    * @param createWritingDto The data for the new writing entry.
    * @param user The authenticated user performing the action.
@@ -547,16 +548,21 @@ export class ProjectsService {
       );
     }
 
+    // --- THE DEFINITIVE AND CORRECTED ASSEMBLY LOGIC ---
+    const now = Date.now();
     const newWriting: WritingEntry = {
+      // 1. Assign properties that are generated here or guaranteed to be in the DTO.
       id: new mongoose.Types.ObjectId().toHexString(),
-      ...createWritingDto,
-      // Generate server-side timestamps for data integrity.
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      // Ensure linking fields are initialized.
-      linkedCharacterIds: [],
-      linkedWorldId: null,
-      linkedEventIds: [],
+      title: createWritingDto.title,
+      content: createWritingDto.content,
+      createdAt: now,
+      updatedAt: now,
+
+      // 2. Intelligently provide defaults for all optional properties.
+      tags: createWritingDto.tags ?? [],
+      linkedCharacterIds: createWritingDto.linkedCharacterIds ?? [],
+      linkedWorldId: createWritingDto.linkedWorldId ?? null,
+      linkedEventIds: createWritingDto.linkedEventIds ?? [],
     };
 
     project.writings.push(newWriting);
@@ -953,13 +959,20 @@ export class ProjectsService {
     const newOrder = maxOrder + 1;
 
     const newEvent: TimelineEvent = {
+      // 1. Assign properties that are generated here or guaranteed to be in the DTO.
       id: new mongoose.Types.ObjectId().toHexString(),
       eraId: eraId,
       order: newOrder,
-      ...createEventDto,
-      // Initialize linking fields.
-      linkedCharacterIds: [],
-      linkedWritingIds: [],
+      title: createEventDto.title,
+      displayDate: createEventDto.displayDate,
+      description: createEventDto.description,
+
+      // 2. Intelligently provide defaults for all optional properties.
+      //    Use the nullish coalescing operator (??) to default to an empty array
+      //    only if the property is null or undefined in the DTO.
+      tags: createEventDto.tags ?? [],
+      linkedCharacterIds: createEventDto.linkedCharacterIds ?? [],
+      linkedWritingIds: createEventDto.linkedWritingIds ?? [],
     };
 
     project.timeline.push(newEvent);
