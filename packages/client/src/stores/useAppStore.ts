@@ -9,7 +9,6 @@ import {
     type WritingEntry,
     type CatalogueItem,
 } from 'aetherquill-common';
-import { saveUserData } from '../utils/storage.ts';
 import { loginUser } from '../api/auth';
 import { AxiosError } from 'axios';
 import { setAuthToken } from '../api/token';
@@ -48,6 +47,11 @@ import {
     deleteEvent as deleteEventApi,
     reorderEventsInEra as reorderEventsInEraApi,
 } from '../api/timeline';
+import {
+    createCatalogueItem,
+    updateCatalogueItem as updateCatalogueItemApi,
+    deleteCatalogueItem as deleteCatalogueItemApi,
+} from '../api/catalogue';
 
 // Defining the theme type
 type Theme = 'light' | 'dark';
@@ -108,11 +112,10 @@ interface AppState {
     deleteWriting: (writingId: string) => Promise<void>; // Now async
 
     // Catalogue
-    addCatalogueItem: (itemData: Omit<CatalogueItem, 'id'>) => void;
-    updateCatalogueItem: (itemId: string, itemData: Partial<Omit<CatalogueItem, 'id'>>) => void;
-    deleteCatalogueItem: (itemId: string) => void;
+    addCatalogueItem: (itemData: Omit<CatalogueItem, 'id'>) => Promise<void>; // Now async
+    updateCatalogueItem: (itemId: string, itemData: Partial<Omit<CatalogueItem, 'id'>>) => Promise<void>; // Now async
+    deleteCatalogueItem: (itemId: string) => Promise<void>; // Now async
 
-    saveCurrentUser: () => void;
 }
 
 // --- THIS IS THE CORRECTED STORE CREATION ---
@@ -925,82 +928,111 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 
     // Catalogue Actions
-    addCatalogueItem: (itemData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+    addCatalogueItem: async (itemData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-        const newItem: CatalogueItem = { id: `cat_${Date.now()}`, ...itemData };
+        try {
+            set({ isLoading: true, error: null });
+            const newItem = await createCatalogueItem(currentProjectId, itemData);
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            // Ensure the catalogue array exists before pushing
-            if (!newUserData.projects[currentProjectId].catalogue) {
-                newUserData.projects[currentProjectId].catalogue = [];
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                if (!newUserData.projects[currentProjectId].catalogue) {
+                    newUserData.projects[currentProjectId].catalogue = [];
+                }
+                newUserData.projects[currentProjectId].catalogue.push(newItem);
+                return { userData: newUserData };
+            });
+
+            toast.success(`Curiosity "${newItem.name}" added to the catalogue.`);
+        } catch (err) {
+            let errorMessage = 'Failed to add item to catalogue.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            newUserData.projects[currentProjectId].catalogue.push(newItem);
-            toast.success(`Curiosity "${itemData.name}" added to the catalogue.`);
-            return { userData: newUserData };
-        });
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    updateCatalogueItem: (itemId, itemData) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            const projectCatalogue = newUserData.projects[currentProjectId].catalogue;
-            const itemIndex = projectCatalogue.findIndex((i: CatalogueItem) => i.id === itemId);
+    updateCatalogueItem: async (itemId, itemData) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
-            if (itemIndex !== -1) {
-                projectCatalogue[itemIndex] = { ...projectCatalogue[itemIndex], ...itemData };
-                toast.success(`Curiosity "${projectCatalogue[itemIndex].name}" updated.`);
+        try {
+            set({ isLoading: true, error: null });
+            const updatedItem = await updateCatalogueItemApi(
+                currentProjectId,
+                itemId,
+                itemData,
+            );
+
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                const projectCatalogue = newUserData.projects[currentProjectId].catalogue;
+                const itemIndex = projectCatalogue.findIndex((i: CatalogueItem) => i.id === itemId);
+
+                if (itemIndex !== -1) {
+                    projectCatalogue[itemIndex] = updatedItem;
+                }
+                return { userData: newUserData };
+            });
+
+            toast.success(`Curiosity "${updatedItem.name}" updated.`);
+        } catch (err) {
+            let errorMessage = 'Failed to update item.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
             }
-            return { userData: newUserData };
-        });
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
+        }
     },
-    deleteCatalogueItem: (itemId) => {
-        const { currentUser, currentProjectId } = get();
-        if (!currentUser || !currentProjectId) return;
+
+    deleteCatalogueItem: async (itemId) => {
+        const { currentProjectId } = get();
+        if (!currentProjectId) return;
 
         const itemName = get().userData?.projects[currentProjectId]?.catalogue.find(i => i.id === itemId)?.name;
 
-        set(state => {
-            if (!state.userData) return state;
-            const newUserData = JSON.parse(JSON.stringify(state.userData));
-            newUserData.projects[currentProjectId].catalogue =
-                newUserData.projects[currentProjectId].catalogue.filter((i: CatalogueItem) => i.id !== itemId);
+        try {
+            set({ isLoading: true, error: null });
+            await deleteCatalogueItemApi(currentProjectId, itemId);
 
-            if (itemName) toast.success(`Curiosity "${itemName}" removed from the catalogue.`);
-            return { userData: newUserData };
-        });
-    },
+            set((state) => {
+                if (!state.userData) return state;
+                const newUserData = JSON.parse(JSON.stringify(state.userData));
+                newUserData.projects[currentProjectId].catalogue =
+                    newUserData.projects[currentProjectId].catalogue.filter((i: CatalogueItem) => i.id !== itemId);
+                return { userData: newUserData };
+            });
 
-
-    // Save Current User Action
-    saveCurrentUser: () => {
-        // We use 'get()' to read the latest state without causing a re-render.
-        const { currentUser, userData } = get();
-        if (currentUser && userData) {
-            saveUserData(userData);
+            if (itemName) {
+                toast.success(`Curiosity "${itemName}" removed from the catalogue.`);
+            }
+        } catch (err) {
+            let errorMessage = 'Failed to delete item.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage });
+            toast.error(errorMessage);
+            throw err;
+        } finally {
+            set({ isLoading: false });
         }
     },
+
 }));
-
-useAppStore.subscribe(
-    // The listener function receives the entire current state.
-    (state) => {
-        // We can now access the parts we need directly from the state.
-        const { currentUser, userData } = state;
-
-        // The logic remains the same: if a user is logged in and their data exists, save it.
-        // This will automatically be called on ANY state change, which is exactly what we want.
-        // Every time addProject, updateProject, etc., is called, this subscription will fire
-        // after the state has been updated, and it will save the new userData.
-        if (currentUser && userData) {
-            console.log("State changed, persisting user data to localStorage...");
-            saveUserData(userData);
-        }
-    }
-);

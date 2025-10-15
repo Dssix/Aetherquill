@@ -80,8 +80,9 @@ const WorldViewerPage: React.FC = () => {
                         {linkedEvents.length > 0 && (
                             <div className={`space-y-1 ${(linkedChars.length > 0 || linkedWritings.length > 0) ? 'mt-4' : ''}`}>
                                 <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2">⏳ Historical Events</h3>
-                                {/* These can be made into links to the timeline later if desired */}
-                                {linkedEvents.map(event => <p key={event.id} className="text-sm">- {event.title}</p>)}
+                                {linkedEvents.map(event =>
+                                    <Link key={event.id} to={`/timeline`} className="text-sm text-primary hover:underline block">- {event.title}</Link>
+                                )}
                             </div>
                         )}
                     </Card>

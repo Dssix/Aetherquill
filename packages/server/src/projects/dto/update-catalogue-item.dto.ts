@@ -6,7 +6,7 @@
  * received when a user updates a lore item.
  */
 
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateCatalogueItemDto {
   /**
@@ -33,4 +33,23 @@ export class UpdateCatalogueItemDto {
    */
   @IsString()
   description: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  @IsString()
+  @IsOptional()
+  linkedWorldId?: string | null;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
 }

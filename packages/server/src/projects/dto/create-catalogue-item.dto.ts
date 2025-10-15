@@ -6,7 +6,7 @@
  * received when a user creates a new lore item (e.g., creature, artifact).
  */
 
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCatalogueItemDto {
   /**
@@ -33,4 +33,35 @@ export class CreateCatalogueItemDto {
    */
   @IsString()
   description: string;
+
+  /**
+   * An optional array of Character IDs to be linked to this item.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedCharacterIds?: string[];
+
+  /**
+   * An optional World ID to be linked to this item.
+   */
+  @IsString()
+  @IsOptional()
+  linkedWorldId?: string | null;
+
+  /**
+   * An optional array of Timeline Event IDs to be linked to this item.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedEventIds?: string[];
+
+  /**
+   * An optional array of Writing Entry IDs to be linked to this item.
+   */
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  linkedWritingIds?: string[];
 }

@@ -1196,12 +1196,14 @@ export class ProjectsService {
 
     const newItem: CatalogueItem = {
       id: new mongoose.Types.ObjectId().toHexString(),
-      ...createCatalogueItemDto,
-      // Initialize linking fields.
-      linkedCharacterIds: [],
-      linkedWorldId: null,
-      linkedEventIds: [],
-      linkedWritingIds: [],
+      name: createCatalogueItemDto.name,
+      category: createCatalogueItemDto.category,
+      description: createCatalogueItemDto.description,
+
+      linkedCharacterIds: createCatalogueItemDto.linkedCharacterIds ?? [],
+      linkedWorldId: createCatalogueItemDto.linkedWorldId ?? null,
+      linkedEventIds: createCatalogueItemDto.linkedEventIds ?? [],
+      linkedWritingIds: createCatalogueItemDto.linkedWritingIds ?? [],
     };
 
     project.catalogue.push(newItem);
