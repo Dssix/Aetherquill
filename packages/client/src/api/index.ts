@@ -8,9 +8,8 @@
  */
 
 import axios from 'axios';
-import { getAuthToken } from './token';
 
-// 1. Create a new Axios instance with a custom configuration.
+// Create a new Axios instance with a custom configuration.
 const apiClient = axios.create({
     /**
      * The base URL for all API requests.
@@ -27,26 +26,5 @@ const apiClient = axios.create({
     withCredentials: true,
 });
 
-// --- The Interceptor Enchantment ---
-// 2. We add an interceptor that runs before each request is sent.
-apiClient.interceptors.request.use(
-    (config) => {
-        // Retrieve the token from our in-memory vault.
-        const token = getAuthToken();
-
-        // If a token exists, we add the 'Authorization' header to the request.
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-
-        // The modified config is returned for axios to use.
-        return config;
-    },
-    (error) => {
-        // If an error occurs during the request setup, we reject the promise.
-        return Promise.reject(error);
-    },
-);
-
-// 2. Export the configured instance as the default export.
+// Export the configured instance as the default export.
 export default apiClient;

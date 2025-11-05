@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './stores/useAppStore.ts';
-import { loadUserData } from './utils/storage.ts';
 import { useThemeManager } from './hooks/useThemeManager.ts';
 import { Toaster } from 'react-hot-toast';
+import { getUserData } from './api/user.ts';
 
 // Page Imports
 import LoginPage from './pages/LoginPage.tsx';
@@ -21,6 +21,8 @@ import CatalogueItemViewerPage from './pages/CatalogueItemViewerPage.tsx';
 
 // Component Imports
 import Layout from './components/Layout.tsx';
+import RegisterPage from "./pages/RegisterPage.tsx";
+import { useLoadingManager } from './hooks/useLoadingManager.ts';
 
 // This component protects routes that require a user to be logged in.
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -43,25 +45,35 @@ const ProjectScopeRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
 
-    const login = useAppStore((state) => state.login);
+    const setUserData = useAppStore((state) => state.setUserData);
     const [isInitializing, setIsInitializing] = useState(true);
 
     // Calling theme manager, makes sure it's always running and listens to theme changes
     useThemeManager();
+    useLoadingManager();
+
 
     useEffect(() => {
-        const checkUser = () => {
-            const savedUsername = localStorage.getItem('aetherquill__current_user');
-            if (savedUsername) {
-                const userData = loadUserData(savedUsername);
-                if (userData) {
-                    login(savedUsername, userData);
-                }
+        const rehydrateSession = async () => {
+            try {
+                // Attempt to fetch user data. This will only succeed if a valid
+                // httpOnly cookie exists from a previous session.
+                const userData = await getUserData();
+                // If it succeeds, hydrate the store.
+                setUserData(userData);
+            } catch {
+                // If it fails (e.g., no cookie, expired cookie), the user is
+                // effectively logged out. We don't need to do anything, as the
+                // store's initial state is already logged-out.
+                console.log('No active session found.');
+            } finally {
+                // In either case, initialization is complete.
+                setIsInitializing(false);
             }
-            setIsInitializing(false);
         };
-        checkUser();
-    }, [login]);
+
+        void rehydrateSession();
+    }, [setUserData]);
 
     if (isInitializing) {
         return null; // Or a beautiful loading screen component
@@ -82,6 +94,7 @@ function App() {
             <Routes>
                 {/* --- Standalone Route --- */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
                 {/* --- Protected Routes Wrapped in the Shared Layout --- */}
                 <Route

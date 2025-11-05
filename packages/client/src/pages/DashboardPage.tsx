@@ -5,7 +5,7 @@ import Card from '../components/ui/Card.tsx';
 import Button from '../components/ui/Button.tsx';
 
 // A new, simple component for the project creation modal.
-const NewProjectModal = ({ onSave, onClose }: { onSave: (name: string) => void, onClose: () => void }) => {
+const NewProjectModal = ({ onSave, onClose, isLoading }: { onSave: (name: string) => void, onClose: () => void, isLoading: boolean }) => {
     const [projectName, setProjectName] = useState('');
 
     const handleSave = () => {
@@ -29,15 +29,17 @@ const NewProjectModal = ({ onSave, onClose }: { onSave: (name: string) => void, 
                     autoFocus
                 />
                 <div className="flex justify-end gap-4 mt-6">
-                    <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleSave}>Create</Button>
+                    <Button variant="secondary" onClick={onClose} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSave} isLoading={isLoading}>
+                        {isLoading ? 'Creating...' : 'Create'}
+                    </Button>
                 </div>
             </Card>
         </div>
     );
 };
 
-const RenameProjectModal = ({ currentName, onSave, onClose }: { currentName: string, onSave: (newName: string) => void, onClose: () => void }) => {
+const RenameProjectModal = ({ currentName, onSave, onClose, isLoading }: { currentName: string, onSave: (newName: string) => void, onClose: () => void, isLoading: boolean }) => {
     const [newName, setNewName] = useState(currentName);
 
     const handleSave = () => {
@@ -60,8 +62,10 @@ const RenameProjectModal = ({ currentName, onSave, onClose }: { currentName: str
                     autoFocus
                 />
                 <div className="flex justify-end gap-4 mt-6">
-                    <Button variant="secondary" onClick={onClose}>Cancel</Button>
-                    <Button onClick={handleSave}>Save</Button>
+                    <Button variant="secondary" onClick={onClose} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSave} isLoading={isLoading}>
+                        {isLoading ? 'Saving...' : 'Save'}
+                    </Button>
                 </div>
             </Card>
         </div>
@@ -71,7 +75,7 @@ const RenameProjectModal = ({ currentName, onSave, onClose }: { currentName: str
 
 const DashboardPage: React.FC = () => {
     // --- Step 1: Summon the necessary data and actions from our store ---
-    const { currentUser, userData, setCurrentProject, addProject, updateProject, deleteProject } = useAppStore();
+    const { currentUser, userData, setCurrentProject, addProject, updateProject, deleteProject, isLoading } = useAppStore();
     const navigate = useNavigate();
 // This single state now controls the "Create Project" modal.
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -181,6 +185,7 @@ const DashboardPage: React.FC = () => {
                 <NewProjectModal
                     onClose={() => setIsCreateModalOpen(false)}
                     onSave={handleCreateProject}
+                    isLoading={isLoading}
                 />
             )}
             {projectToRename && (
@@ -188,6 +193,7 @@ const DashboardPage: React.FC = () => {
                     currentName={projectToRename.name}
                     onClose={() => setProjectToRename(null)}
                     onSave={handleRenameProject}
+                    isLoading={isLoading}
                 />
             )}
         </main>

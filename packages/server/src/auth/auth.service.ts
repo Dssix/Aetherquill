@@ -61,9 +61,6 @@ export class AuthService {
     // Step 3: Mint the Signet Ring (JWT)
     const payload = { username: user.username };
     const accessToken = await this.jwtService.signAsync(payload);
-
-    return {
-      accessToken,
-    };
+    return { accessToken, user: { username: user.username } };
   }
 }

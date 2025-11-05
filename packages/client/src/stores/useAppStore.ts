@@ -9,9 +9,8 @@ import {
     type WritingEntry,
     type CatalogueItem,
 } from 'aetherquill-common';
-import { loginUser } from '../api/auth';
+import {loginUser, type RegisterCredentials, registerUser, logoutUser} from '../api/auth';
 import { AxiosError } from 'axios';
-import { setAuthToken } from '../api/token';
 import { getUserData } from '../api/user';
 import {
     createProject,
@@ -71,9 +70,12 @@ interface AppState {
     isLoading: boolean; // To track when an API call is in progress
     error: string | null; // To store any error messages from the API
 
+
     // Login Action
-    login: (credentials: LoginCredentials) => Promise<void>; // It now accepts credentials and returns a Promise
+    register: (credentials: RegisterCredentials) => Promise<void>;
+    login: (credentials: LoginCredentials) => Promise<void>;
     logout: () => void;
+    setUserData: (userData: UserData) => void;
 
     // Theme Toggle
     toggleTheme: () => void;
@@ -130,35 +132,64 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Initialize the theme state
     theme: (localStorage.getItem('aetherquill__theme') as Theme) || 'light',
 
+    // Register Action
+    register: async (credentials) => {
+        try {
+            // Announce that an async operation is starting.
+            set({ isLoading: true, error: null });
+
+            // Make the API call to the backend's /auth/register endpoint.
+            await registerUser(credentials);
+
+            // --- SUCCESS ---
+            // The backend has successfully created the new user.
+            // We do not log the user in automatically. The best practice is to
+            // guide them to the login page to use their new credentials.
+            set({ isLoading: false });
+            toast.success('Account created successfully! Please log in.');
+
+        } catch (err) {
+            // --- FAILURE ---
+            // The API call failed (e.g., 409 Conflict for existing username).
+            let errorMessage = 'An unexpected registration error occurred.';
+            if (isAxiosError(err)) {
+                const appErr = err as AppAxiosError;
+                errorMessage = appErr.response?.data?.message || errorMessage;
+            }
+            set({ error: errorMessage, isLoading: false });
+            toast.error(errorMessage);
+            throw new Error(errorMessage);
+        }
+    },
 
     // Login Actions
     // --- Session Actions ---
     login: async (credentials) => {
         try {
             set({ isLoading: true, error: null });
+
             // --- ACT I: AUTHENTICATION ---
-            // First, we authenticate and get the signet ring (token).
-            const loginResponse = await loginUser(credentials);
-            setAuthToken(loginResponse.accessToken); // Store the ring in our secure box.
+            // This call now does two things:
+            // 1. Verifies credentials.
+            // 2. Automatically sets the secure httpOnly cookie in the browser.
+            await loginUser(credentials);
 
             // --- ACT II: DATA FETCHING ---
-            // Now that we have the ring, our messenger is automatically authenticated.
-            // We immediately fetch the user's entire world.
+            // This call now works because the browser AUTOMATICALLY sends the cookie
+            // that was just set. Our backend's JwtStrategy will find it and validate it.
             const userDataPayload = await getUserData();
 
             // --- SUCCESS ---
-            // We have the token AND all the user's data. The login is fully complete.
             set({
                 currentUser: userDataPayload.username,
-                userData: userDataPayload, // Set the REAL data from the API.
+                userData: userDataPayload,
                 isLoading: false,
             });
 
             localStorage.setItem('aetherquill__current_user', userDataPayload.username);
-        } catch (err) {
+        }catch (err) {
             // We initialize a default error message.
             let errorMessage = 'An unexpected login error occurred.';
-            setAuthToken(null);
 
             // Now, we check if the error is an AxiosError. This is our type guard.
             if (err instanceof AxiosError) {
@@ -176,16 +207,36 @@ export const useAppStore = create<AppState>((set, get) => ({
             throw new Error(errorMessage);
         }
     },
-    logout: () => {
-        localStorage.removeItem('aetherquill__current_user');
-        // In the future, we will also remove the JWT here.
-        set({
-            currentUser: null,
-            userData: null,
-            currentProjectId: null,
-        });
+    logout: async () => {
+        try {
+            // First, command the backend to destroy the secure session cookie.
+            await logoutUser();
+        } catch (error) {
+            // Even if the API call fails (e.g., network error), we should
+            // still clear the frontend state as a fallback.
+            console.error('Logout API call failed, proceeding with client-side logout.', error);
+        } finally {
+            // This block runs whether the try succeeds or fails.
+            // Clear the user's name from localStorage.
+            localStorage.removeItem('aetherquill__current_user');
+
+            // Reset the entire application state to its initial, logged-out condition.
+            set({
+                currentUser: null,
+                userData: null,
+                currentProjectId: null,
+                isLoading: false,
+                error: null,
+            });
+        }
     },
 
+    setUserData: (userData) => {
+        set({
+            currentUser: userData.username,
+            userData: userData,
+        });
+    },
 
 
     // Theme Action

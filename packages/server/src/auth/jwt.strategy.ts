@@ -2,28 +2,37 @@
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import { Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
+import { Request } from 'express';
+
+const cookieExtractor = (req: Request): string | null => {
+  let token: string | null = null; // Explicitly define the type
+  if (req && req.cookies) {
+    // We access the property and ensure it's treated as a string or null
+    token = req.cookies['access_token'] as string | null;
+  }
+  return token;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService, // Keep the injection
     @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {
     const secret = configService.get<string>('JWT_SECRET');
-
     if (!secret) {
       throw new Error(
-        'JWT_SECRET is not defined in the environment variables!',
+        'JWT_SECRET not found in environment variables. Application cannot start.',
       );
     }
 
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieExtractor,
       ignoreExpiration: false,
       secretOrKey: secret,
     });
