@@ -10,6 +10,7 @@ const LoginPage: React.FC = () => {
     // --- NEW: State for both username and password ---
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     // Get the refactored login action from our store.
     const login = useAppStore((state) => state.login);
@@ -21,9 +22,11 @@ const LoginPage: React.FC = () => {
      * This is now an async function that communicates with the backend via the store.
      */
     const handleLogin = async () => {
+        // Clear any previous errors on a new attempt.
+        setError(null);
         const trimmedUsername = username.trim();
         if (!trimmedUsername || !password) {
-            alert('Both name and secret word are required.');
+            setError('Both name and secret word are required.');
             return;
         }
 
@@ -31,17 +34,21 @@ const LoginPage: React.FC = () => {
             // This now correctly calls the store with a single object.
             await login({ username: trimmedUsername, password });
             navigate('/');
-        } catch (error) {
-            console.error('Login failed:', error);
-            alert('Login failed. Please check thy name and secret word.');
+        } catch (err) {
+            // Catch the error thrown by the store and set its message to our local state.
+            if (err instanceof Error) {
+                setError(err.message);
+                console.error('Login failed:', err.message);
+            } else {
+                const unknownErrorMessage = 'An unexpected error occurred during login.';
+                setError(unknownErrorMessage);
+                console.error(unknownErrorMessage, err);
+            }
         }
     };
 
     return (
-        <main
-            className="min-h-screen w-full flex flex-col items-center justify-center p-4 bg-cover bg-center"
-            style={{ backgroundImage: "url('/parchment-bg.png')" }}
-        >
+        <main className="min-h-screen w-full flex flex-col items-center justify-center p-4">
             <div className="text-center mb-12">
                 <h1 className="text-7xl font-bold text-foreground font-serif">
                     Aetherquill
@@ -58,29 +65,39 @@ const LoginPage: React.FC = () => {
                     }}
                 >
                     <label className="block">
-            <span className="text-sm font-semibold text-muted-foreground">
-              Enter Thy Name, Scribe
-            </span>
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      Enter Thy Name, Scribe
+                    </span>
                         <input
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary"
+                            // Conditionally apply the error border style
+                            className={`w-full p-2 mt-1 bg-input/50 border-b-2 focus:outline-none focus:border-primary ${
+                                error ? 'border-destructive' : 'border-border'
+                            }`}
                             autoFocus
                         />
                     </label>
 
                     {/* --- NEW: Password Input Field --- */}
                     <label className="block mt-4">
-            <span className="text-sm font-semibold text-muted-foreground">
-              And Thy Secret Word
-            </span>
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      And Thy Secret Word
+                    </span>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full p-2 mt-1 bg-input/50 border-b-2 border-border focus:outline-none focus:border-primary"
+                            // Conditionally apply the error border style
+                            className={`w-full p-2 mt-1 bg-input/50 border-b-2 focus:outline-none focus:border-primary ${
+                                error ? 'border-destructive' : 'border-border'
+                            }`}
                         />
                     </label>
+
+                    {error && (
+                        <p className="text-sm text-destructive mt-4 text-center">{error}</p>
+                    )}
 
                     <div className="text-center mt-6">
                         <Button type="submit" isLoading={isLoading}>

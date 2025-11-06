@@ -74,7 +74,7 @@ interface AppState {
     // Login Action
     register: (credentials: RegisterCredentials) => Promise<void>;
     login: (credentials: LoginCredentials) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     setUserData: (userData: UserData) => void;
 
     // Theme Toggle
@@ -278,8 +278,8 @@ export const useAppStore = create<AppState>((set, get) => ({
             });
 
             toast.success(`Chronicle "${newProject.name}" created!`);
-        } catch (err) { // 1. Remove the ': any'
-            // 2. Use the isAxiosError type guard to check the error type
+        } catch (err) {
+            // Use the isAxiosError type guard to check the error type
             let errorMessage = 'Failed to create project.';
             if (isAxiosError(err)) {
                 // Now TypeScript knows err is an AxiosError and has a .response property
@@ -578,7 +578,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
 
-
     // Era Action
     addEra: async (eraData) => {
         const { currentProjectId } = get();
@@ -684,7 +683,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         }
     },
 
-
     reorderEras: async (eraIds) => {
         const { currentProjectId } = get();
         if (!currentProjectId) return;
@@ -716,6 +714,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             set({ isLoading: false });
         }
     },
+
     reorderEventsInEra: async (eraId, eventIds) => {
         const { currentProjectId } = get();
         if (!currentProjectId) return;

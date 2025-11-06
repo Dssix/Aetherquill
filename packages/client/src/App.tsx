@@ -23,6 +23,7 @@ import CatalogueItemViewerPage from './pages/CatalogueItemViewerPage.tsx';
 import Layout from './components/Layout.tsx';
 import RegisterPage from "./pages/RegisterPage.tsx";
 import { useLoadingManager } from './hooks/useLoadingManager.ts';
+import AppShell from "./components/AppShell.tsx";
 
 // This component protects routes that require a user to be logged in.
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -105,28 +106,30 @@ function App() {
                         </ProtectedRoute>
                     }
                 >
-                    {/* The Dashboard is the main page for a logged-in user. */}
-                    <Route index element={<DashboardPage />} />
+                    <Route element={<AppShell />}>
+                        {/* The Dashboard is the main page for a logged-in user. */}
+                        <Route index element={<DashboardPage />} />
 
-                    {/* All pages that require a project are nested inside this special protection route. */}
-                    <Route path="project" element={<ProjectScopeRoute><ProjectPage /></ProjectScopeRoute>} />
-                    <Route path="timeline" element={<ProjectScopeRoute><TimelinePage /></ProjectScopeRoute>} />
-                    // Route for the Character view
-                    <Route path="characters" element={<ProjectScopeRoute><CharacterPage /></ProjectScopeRoute>} />
-                    <Route path="characters/:characterId" element={<CharacterViewerPage />} />
-                    // Route for Writing room
-                    <Route path="writing-room" element={<ProjectScopeRoute><WritingRoomPage /></ProjectScopeRoute>} />
-                    <Route path="writing/:writingId" element={<ProjectScopeRoute><WritingViewerPage /></ProjectScopeRoute>} />
-                    // Route for Worlds view
-                    <Route path="worlds" element={<ProjectScopeRoute><WorldsPage /></ProjectScopeRoute>} />
-                    <Route path="worlds/:worldId" element={<WorldViewerPage />} />
-                    // Catalogue
-                    <Route path="catalogue" element={<CataloguePage />} />
-                    <Route path="catalogue/:itemId" element={<CatalogueItemViewerPage />} />
+                        {/* All pages that require a project are nested inside this special protection route. */}
+                        <Route path="project" element={<ProjectScopeRoute><ProjectPage /></ProjectScopeRoute>} />
+                        <Route path="timeline" element={<ProjectScopeRoute><TimelinePage /></ProjectScopeRoute>} />
+                        // Route for the Character view
+                        <Route path="characters" element={<ProjectScopeRoute><CharacterPage /></ProjectScopeRoute>} />
+                        <Route path="characters/:characterId" element={<CharacterViewerPage />} />
+                        // Route for Writing room
+                        <Route path="writing-room" element={<ProjectScopeRoute><WritingRoomPage /></ProjectScopeRoute>} />
+                        <Route path="writing/:writingId" element={<ProjectScopeRoute><WritingViewerPage /></ProjectScopeRoute>} />
+                        // Route for Worlds view
+                        <Route path="worlds" element={<ProjectScopeRoute><WorldsPage /></ProjectScopeRoute>} />
+                        <Route path="worlds/:worldId" element={<WorldViewerPage />} />
+                        // Catalogue
+                        <Route path="catalogue" element={<CataloguePage />} />
+                        <Route path="catalogue/:itemId" element={<CatalogueItemViewerPage />} />
+                    </Route>
+
+                    {/* A catch-all for any unknown URL, redirecting to the user's dashboard. */}
+                    <Route path="*" element={<Navigate to="/" />} />
                 </Route>
-
-                {/* A catch-all for any unknown URL, redirecting to the user's dashboard. */}
-                <Route path="*" element={<Navigate to="/" />} />
             </Routes>
         </BrowserRouter>
     );

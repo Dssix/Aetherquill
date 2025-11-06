@@ -75,18 +75,17 @@
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
-        text-shadow: 1px 1px 2px hsl(var(--foreground) / 0.1);
         overflow-y: scroll;
     }
 
-    /* --- Apply the correct background image based on the theme --- */
-    /* We target the <html> element, which is the ultimate root. */
+    /* --- Apply the correct background image to the body based on the theme --- */
     html:not(.dark) body {
         background-image: url('/parchment-bg.png');
+        text-shadow: 1px 1px 2px hsl(var(--foreground) / 0.1);
     }
 
     html.dark body {
-        background-image: url('dark-parchment-bg.png');
+        background-image: url('/dark-parchment-bg.png');
         text-shadow: 1px 1px 3px hsl(var(--foreground) / 0.2);
     }
 
